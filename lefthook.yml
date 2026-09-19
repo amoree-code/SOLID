@@ -1,0 +1,16 @@
+pre-commit:
+  parallel: true
+  jobs:
+    - name: biome
+      glob: "*.{js,ts,jsx,tsx,json,css}"
+      run: pnpm exec biome check --write {staged_files}
+      stage_fixed: true
+
+    - name: typecheck
+      glob: "*.{ts,tsx}"
+      run: pnpm typecheck
+
+pre-push:
+  jobs:
+    - name: verify
+      run: pnpm verify

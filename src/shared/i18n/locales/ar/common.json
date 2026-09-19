@@ -1,0 +1,13 @@
+{
+  "app.name": "لوحة التحكم",
+  "actions.save": "حفظ",
+  "actions.cancel": "إلغاء",
+  "actions.delete": "حذف",
+  "actions.edit": "تعديل",
+  "actions.create": "إنشاء",
+  "actions.retry": "إعادة المحاولة",
+  "state.loading": "جارٍ التحميل…",
+  "state.empty": "لا يوجد شيء لعرضه بعد.",
+  "state.error": "حدث خطأ ما.",
+  "state.forbidden": "ليس لديك صلاحية لعرض هذه الصفحة."
+}

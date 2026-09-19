@@ -11,6 +11,16 @@ node_modules
 dist
 dist-ssr
 *.local
+.env
+.env.*
+!.env.example
+
+# Generated / tool output
+src/routeTree.gen.ts
+coverage
+playwright-report
+test-results
+.claude/worktrees
 
 # Editor directories and files
 .vscode/*

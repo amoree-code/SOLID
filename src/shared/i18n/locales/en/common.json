@@ -1,0 +1,13 @@
+{
+  "app.name": "Dashboard",
+  "actions.save": "Save",
+  "actions.cancel": "Cancel",
+  "actions.delete": "Delete",
+  "actions.edit": "Edit",
+  "actions.create": "Create",
+  "actions.retry": "Try again",
+  "state.loading": "Loading…",
+  "state.empty": "Nothing to show yet.",
+  "state.error": "Something went wrong.",
+  "state.forbidden": "You don't have permission to view this page."
+}
