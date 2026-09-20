@@ -1,8 +1,8 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
+import { ItemForm } from '@/routes/_dashboard/example-page/components/item-form';
 import { renderWithProviders } from '@/shared/testing/render';
-import { ItemForm } from '../components/item-form';
 
 describe('ItemForm', () => {
   it('submits valid item data', async () => {

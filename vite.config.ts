@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => ({
             routesDirectory: './src/routes',
             generatedRouteTree: './src/routeTree.gen.ts',
             routeFileIgnorePattern:
-              '\\.(test|spec)\\.(ts|tsx)$|/(components|services|queries|schemas|tests)/|/(permissions|types)\\.ts$',
+              '/(components|services|queries|schemas)/|/(permissions|types)\\.ts$',
           }),
         ]),
     react(),
@@ -34,6 +34,9 @@ export default defineConfig(({ mode }) => ({
     environment: 'jsdom',
     setupFiles: ['./src/shared/testing/setup.ts'],
     css: true,
-    exclude: ['node_modules/**', 'e2e/**'],
+    // All unit/integration tests live under e2e/unit/ (mirroring src/), not
+    // colocated with the code — e2e/flows/ holds Playwright specs instead,
+    // which this project must never pick up.
+    include: ['e2e/unit/**/*.{test,spec}.{ts,tsx}'],
   },
 }));

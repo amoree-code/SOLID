@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { itemKeys } from '../queries/item.keys';
-import type { ItemSearch } from '../schemas/item-search.schema';
+import { itemKeys } from '@/routes/_dashboard/example-page/queries/item.keys';
+import type { ItemSearch } from '@/routes/_dashboard/example-page/schemas/item-search.schema';
 
 const search: ItemSearch = {
   page: 1,

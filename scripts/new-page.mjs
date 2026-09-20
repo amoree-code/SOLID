@@ -54,15 +54,27 @@ const PascalSingular = toPascalCase(singular);
 const camelSingular = toCamelCase(singular);
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const templateDir = path.join(repoRoot, 'src/routes/_dashboard/example-page');
-const targetDir = path.join(repoRoot, 'src/routes/_dashboard', plural);
 
-if (!fs.existsSync(templateDir)) {
-  fail(`Template not found: ${path.relative(repoRoot, templateDir)}`);
-}
+// The route folder and its tests live in separate trees (see README > Testing):
+// unit tests are centralized under e2e/unit/, mirroring src/, not colocated.
+const copies = [
+  {
+    src: path.join(repoRoot, 'src/routes/_dashboard/example-page'),
+    dest: path.join(repoRoot, 'src/routes/_dashboard', plural),
+  },
+  {
+    src: path.join(repoRoot, 'e2e/unit/routes/_dashboard/example-page'),
+    dest: path.join(repoRoot, 'e2e/unit/routes/_dashboard', plural),
+  },
+];
 
-if (fs.existsSync(targetDir)) {
-  fail(`Target already exists: ${path.relative(repoRoot, targetDir)}`);
+for (const { src, dest } of copies) {
+  if (!fs.existsSync(src)) {
+    fail(`Template not found: ${path.relative(repoRoot, src)}`);
+  }
+  if (fs.existsSync(dest)) {
+    fail(`Target already exists: ${path.relative(repoRoot, dest)}`);
+  }
 }
 
 // Order matters: capitalized "Item" first (handles PascalCase compounds like
@@ -105,11 +117,15 @@ function copyRecursive(srcPath, destPath) {
   fs.writeFileSync(destPath, transformContent(content));
 }
 
-copyRecursive(templateDir, targetDir);
+for (const { src, dest } of copies) {
+  copyRecursive(src, dest);
+}
 
-const relativeTarget = path.relative(repoRoot, targetDir);
+const relativeTarget = path.relative(repoRoot, copies[0].dest);
+const relativeTestTarget = path.relative(repoRoot, copies[1].dest);
 
 console.log(`Created ${relativeTarget}/`);
+console.log(`Created ${relativeTestTarget}/`);
 console.log('');
 console.log('Next steps (not automated — small, reviewable edits):');
 console.log('  1. REQUIRED to compile: run `pnpm dev` (or `pnpm build`) once so the router');
@@ -121,4 +137,5 @@ console.log('  3. Add a sidebar link in src/shared/components/layout/dashboard-s
 console.log(`  4. Add nav.${camelSingular}... keys to src/shared/i18n/locales/*/navigation.json`);
 console.log(`  5. Point ${relativeTarget}/services/*.ts at the real backend contract`);
 console.log(`  6. Update ${relativeTarget}/schemas/${singular}.schema.ts to match real fields`);
-console.log('  7. Review the copied tests — their assertions still describe the old fields');
+console.log(`  7. Review the copied tests in ${relativeTestTarget}/ — assertions still describe`);
+console.log('     the old fields');

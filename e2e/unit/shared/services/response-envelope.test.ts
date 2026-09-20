@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import { normalizePaginatedResponse } from './response-envelope';
+import { normalizePaginatedResponse } from '@/shared/services/response-envelope';
 
 const rowSchema = z.object({ id: z.string() });
 const fallback = { page: 1, pageSize: 25 };

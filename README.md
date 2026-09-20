@@ -67,7 +67,9 @@ src/
 │   ├── _auth/     # pathless layout: login, verify (unauthenticated only)
 │   └── _dashboard/# pathless layout: authenticated shell + pages (e.g. example-page)
 └── shared/        # code promoted here only once ≥2 pages need it (see below)
-e2e/               # Playwright — user journeys, not page-specific (see Testing)
+e2e/               # every test in the project — see Testing
+├── unit/          # Vitest — mirrors src/ 1:1, just without the app code
+└── flows/         # Playwright — user journeys, not page-specific
 scripts/           # new-page.mjs — the `pnpm new:page` generator
 ```
 
@@ -78,26 +80,27 @@ routes/_dashboard/example-page/
 ├── index.tsx              # list route: validates search params, checks permissions, loads data
 ├── $itemId/                # detail route — its OWN directory (see below), not a bare file
 │   ├── route.tsx
-│   ├── components/          # detail-only UI (e.g. ItemDetails)
-│   └── tests/
+│   └── components/          # detail-only UI (e.g. ItemDetails)
 ├── components/              # list-page UI, plus anything both routes share (e.g. ItemForm)
 ├── services/                # HTTP calls only — no hooks, no UI, no toasts
 ├── queries/                  # query keys, query options, mutations
 ├── schemas/                  # Zod schemas (entity shape, URL search, forms)
-├── tests/                    # Vitest + Testing Library (list-page tests)
 ├── permissions.ts            # the page's slice of the shared permission map
 └── types.ts                  # page-local types
 ```
 
+Its tests live at the mirrored path under `e2e/unit/` (see Testing below), not inside this
+tree — that's a deliberate project-wide choice, not a per-page exception.
+
 **Why `$itemId/` is a directory, not `$itemId.tsx`:** TanStack Router supports "directory
-routes" — a route file can be `$itemId/route.tsx` instead of `$itemId.tsx`, with sibling
-`components/`/`tests/` folders that the router ignores (see `routeFileIgnorePattern` in
-`vite.config.ts`). That gives the detail page its own isolated `components/`/`tests/`
-without duplicating `services/`, `queries/`, `schemas/`, `types.ts`, and `permissions.ts` —
-list and detail are the same SOLID *unit of change* (the same entity, the same endpoints,
-the same permission group), so sharing those specific files isn't premature sharing, it's
-avoiding a fork of the same contract. If a detail page ever needs its own service or query
-that the list page doesn't, add it under `$itemId/` directly the same way.
+routes" — a route file can be `$itemId/route.tsx` instead of `$itemId.tsx`, with a sibling
+`components/` folder that the router ignores (see `routeFileIgnorePattern` in
+`vite.config.ts`). That gives the detail page its own isolated `components/` without
+duplicating `services/`, `queries/`, `schemas/`, `types.ts`, and `permissions.ts` — list and
+detail are the same SOLID *unit of change* (the same entity, the same endpoints, the same
+permission group), so sharing those specific files isn't premature sharing, it's avoiding a
+fork of the same contract. If a detail page ever needs its own service or query that the
+list page doesn't, add it under `$itemId/` directly the same way.
 
 **`example-page` is the canonical reference implementation.** When starting a real feature,
 run `pnpm new:page <singular> <plural>` (see above) instead of copying it by hand.
@@ -115,7 +118,8 @@ run `pnpm new:page <singular> <plural>` (see above) instead of copying it by han
 5. Add translation keys to `shared/i18n/locales/*/navigation.json` (and any page-specific copy).
 6. Update `schemas/<singular>.schema.ts` to match the real backend fields, and point
    `services/*.ts` at the real endpoints.
-7. Review the copied tests — their assertions still describe the old entity's fields.
+7. Review the copied tests in `e2e/unit/routes/_dashboard/<plural>/` — their assertions still
+   describe the old entity's fields.
 
 ### Removing a page
 
@@ -209,17 +213,41 @@ Kurdish Kurmanji (LTR).
 
 ## Testing
 
-Two kinds of tests live in two different places, on purpose — they're not interchangeable:
+Every test in the project lives under `e2e/`, split into two trees by *how it runs*, not by
+which page it covers:
 
-| | Where | Why there |
-|---|---|---|
-| **Vitest + Testing Library** (unit/integration) | Colocated: `<page>/tests/`, `<page>/$id/tests/`, or right beside a `shared/` file (e.g. `can.test.ts`) | Tests a single piece — a schema, a permission check, one component — in isolation. Deleting a page deletes its tests with it; nothing is left behind to fail for a page that no longer exists. This is what "every page owns its tests" means literally. |
-| **Playwright** (E2E) | One central `e2e/` folder, organized by user *journey* | A real flow crosses multiple pages/routes in one browser session (`login` → `items` → `logout`), so it doesn't belong to any single page's folder. Discovered automatically — anything under `e2e/` runs with `pnpm e2e`; `vite.config.ts` explicitly excludes that folder from `pnpm test` so the two runners never pick up each other's files. |
+```text
+e2e/
+├── unit/    # Vitest + Testing Library — mirrors src/ path-for-path, minus the app code
+│   ├── routes/_auth/login/login-form.test.tsx
+│   ├── routes/_dashboard/example-page/item-form.test.tsx
+│   ├── routes/_dashboard/example-page/$itemId/item-details.test.tsx
+│   └── shared/permissions/can.test.ts
+└── flows/   # Playwright — one file per user journey, not per page
+    └── auth.spec.ts
+```
 
-`pnpm new:page` copies the reference page's colocated tests as a starting template — their
-assertions still describe the old entity until you update them (step 7 above).
+- `pnpm test` runs Vitest against `e2e/unit/**` only (`vite.config.ts` → `test.include`).
+- `pnpm e2e` runs Playwright against `e2e/flows/**` only (`playwright.config.ts` →
+  `testDir`). Neither runner ever picks up the other's files.
+- Every test file imports the code it tests through the `@/` alias
+  (`@/routes/_dashboard/example-page/components/item-form`), never a relative path — since
+  a test's location no longer matches the code's location, relative paths would be fragile
+  and misleading.
+- `pnpm new:page` generates both trees together: `src/routes/_dashboard/<plural>/` *and*
+  `e2e/unit/routes/_dashboard/<plural>/`, so a new page always arrives with a matching test
+  skeleton — see "Adding a page" above.
 
-`e2e/auth.spec.ts` covers what's meaningful without a real backend: auth redirects,
+**Why this instead of colocated unit tests:** colocation (test next to the code, deleted
+with the page) is the more common default and is what the original spec for this template
+assumed. This project deliberately trades that per-page cleanup guarantee for **one single,
+predictable place to look for or add any test, regardless of type** — a project-wide
+decision, not a per-page exception. `pnpm new:page` is what keeps this trade from costing
+you anything in practice: it generates the matching `e2e/unit/` skeleton for every new page
+automatically, so nothing is actually left to clean up by hand when a page is removed —
+delete both `src/routes/_dashboard/<plural>/` and `e2e/unit/routes/_dashboard/<plural>/`.
+
+`e2e/flows/auth.spec.ts` covers what's meaningful without a real backend: auth redirects,
 route-permission denial, and form validation. Extend it per-flow once a real backend is
 wired up (login success, CRUD on a real page, logout, language/RTL switching).
 
@@ -228,3 +256,20 @@ them — they're part of the shared kit's public surface for whoever builds the 
 `CardDescription`/`CardFooter` (full Card API), `health.service.ts`/`upload.service.ts`
 (infra stubs), and the extra test helpers in `shared/testing/`. These are listed explicitly
 in `knip.json`'s `ignore`, not swept under a blanket exclusion.
+
+## CI/CD
+
+`.github/workflows/ci.yml` runs on every push to `main` and every pull request, as four
+independent jobs so a failure points at exactly one gate:
+
+| Job | Runs |
+|---|---|
+| `quality` | `pnpm typecheck` → `pnpm lint:ci` → `pnpm knip` |
+| `test` | `pnpm test` (Vitest, `e2e/unit/`) |
+| `build` | `pnpm build` → `pnpm size`, uploads `dist/` as an artifact |
+| `e2e` | installs Chromium, builds, `pnpm e2e` (Playwright, `e2e/flows/`); uploads the HTML report as an artifact **only on failure**, for local download and inspection |
+
+Turn this into a required check on `main` from the GitHub repo settings (Settings → Branches
+→ branch protection rule) once you've pushed it — the workflow file alone doesn't block
+merges by itself. Locally, `pnpm verify` runs the same gates in one sequential command
+(plus `pnpm e2e` at the end) and is what `lefthook`'s `pre-push` hook already calls.

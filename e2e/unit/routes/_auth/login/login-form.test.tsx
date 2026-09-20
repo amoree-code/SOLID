@@ -1,8 +1,8 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
+import { LoginForm } from '@/routes/_auth/login/components/login-form';
 import { renderWithProviders } from '@/shared/testing/render';
-import { LoginForm } from '../components/login-form';
 
 describe('LoginForm', () => {
   it('shows validation errors for an invalid email and short password', async () => {

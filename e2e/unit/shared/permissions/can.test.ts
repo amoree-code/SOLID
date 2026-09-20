@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { AuthUser } from '@/shared/auth/auth.types';
-import { can, canAll, canAny } from './can';
-import { permissions } from './permission-map';
+import { can, canAll, canAny } from '@/shared/permissions/can';
+import { permissions } from '@/shared/permissions/permission-map';
 
 function buildUser(overrides: Partial<AuthUser> = {}): AuthUser {
   return {
