@@ -2,10 +2,10 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { PermissionGuard } from '@/shared/permissions/permission-guard';
-import { itemPermissions } from '../permissions';
-import { useUpdateItem } from '../queries/item.mutations';
-import { itemDetailOptions } from '../queries/item.queries';
-import { ItemForm } from './item-form';
+import { ItemForm } from '../../components/item-form';
+import { itemPermissions } from '../../permissions';
+import { useUpdateItem } from '../../queries/item.mutations';
+import { itemDetailOptions } from '../../queries/item.queries';
 
 type ItemDetailsProps = {
   itemId: string;

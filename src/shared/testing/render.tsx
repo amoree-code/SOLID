@@ -1,4 +1,4 @@
-import { QueryClientProvider } from '@tanstack/react-query';
+import { type QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   createMemoryHistory,
   createRootRoute,
@@ -13,6 +13,7 @@ import { createTestQueryClient } from './query-wrapper';
 
 type RenderOptions = {
   path?: string;
+  queryClient?: QueryClient;
 };
 
 /**
@@ -20,8 +21,10 @@ type RenderOptions = {
  * router so components using `Link`/`useNavigate` work without a real route tree.
  * Awaits the router's initial load so the component is on screen before this resolves.
  */
-export async function renderWithProviders(ui: ReactElement, { path = '/' }: RenderOptions = {}) {
-  const queryClient = createTestQueryClient();
+export async function renderWithProviders(
+  ui: ReactElement,
+  { path = '/', queryClient = createTestQueryClient() }: RenderOptions = {},
+) {
   const rootRoute = createRootRoute();
   const testRoute = createRoute({
     getParentRoute: () => rootRoute,

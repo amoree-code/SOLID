@@ -8,9 +8,12 @@
   "files": {
     "includes": [
       "src/**",
+      "e2e/**",
+      "scripts/**",
       "*.json",
       "*.ts",
       "*.tsx",
+      "*.mjs",
       "!src/routeTree.gen.ts",
       "!.claude/worktrees",
       "!build",
@@ -72,6 +75,14 @@
       "includes": ["src/routeTree.gen.ts"],
       "linter": { "enabled": false },
       "formatter": { "enabled": false }
+    },
+    {
+      "includes": ["scripts/**"],
+      "linter": {
+        "rules": {
+          "suspicious": { "noConsole": "off" }
+        }
+      }
     }
   ]
 }

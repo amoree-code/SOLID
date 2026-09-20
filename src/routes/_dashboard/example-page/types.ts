@@ -1,11 +1,7 @@
 import type { PaginatedResponse } from '@/shared/query/query.types';
+import type { Item } from './schemas/item.schema';
 
-export type Item = {
-  id: string;
-  name: string;
-  status: 'active' | 'inactive';
-  createdAt: string;
-};
+export type { Item };
 
 export type ItemListResponse = PaginatedResponse<Item>;
 

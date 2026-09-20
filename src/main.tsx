@@ -14,7 +14,9 @@ const router = createAppRouter({ queryClient });
 
 const RouterDevtools = import.meta.env.DEV
   ? lazy(() =>
-      import('@tanstack/router-devtools').then((mod) => ({ default: mod.TanStackRouterDevtools })),
+      import('@tanstack/router-devtools').then((mod) => ({
+        default: mod.TanStackRouterDevtools,
+      })),
     )
   : null;
 

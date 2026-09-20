@@ -18,6 +18,7 @@
     "size": "size-limit",
     "e2e": "playwright test",
     "e2e:install": "playwright install --with-deps chromium",
+    "new:page": "node scripts/new-page.mjs",
     "prepare": "lefthook install",
     "verify": "pnpm typecheck && pnpm lint:ci && pnpm test && pnpm build && pnpm knip && pnpm size && pnpm e2e"
   },
