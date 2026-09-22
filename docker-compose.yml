@@ -1,0 +1,44 @@
+# Local dev/testing only. `postgres` is what apps/backend needs to run for
+# real (migrate, seed, e2e tests that actually query data) — it's the piece
+# this repo can't give you standalone. `backend`/`dashboard`/`portfolio`
+# build from each app's own Dockerfile if you want the full stack in
+# containers too; for day-to-day development, prefer `pnpm --filter <app>
+# dev` against this Postgres instead of rebuilding images on every change.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: solid_backend
+    ports:
+      - "5432:5432"
+    volumes:
+      - solid_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    profiles: ["full"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/solid_backend?schema=public
+      CORS_ORIGIN: http://localhost:5173
+      JWT_ACCESS_SECRET: dev-only-access-secret-change-me
+      JWT_ACCESS_EXPIRES_IN: 15m
+      JWT_REFRESH_SECRET: dev-only-refresh-secret-change-me
+      JWT_REFRESH_EXPIRES_IN: 7d
+    ports:
+      - "3000:3000"
+
+volumes:
+  solid_postgres_data:

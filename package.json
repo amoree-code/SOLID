@@ -2,8 +2,9 @@
   "name": "solid",
   "private": true,
   "version": "0.0.0",
+  "packageManager": "pnpm@10.26.1",
   "scripts": {
-    "prepare": "lefthook install"
+    "prepare": "git rev-parse --is-inside-work-tree >/dev/null 2>&1 && lefthook install || true"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",

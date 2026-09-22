@@ -68,9 +68,25 @@ it with actual OTP/email/SMS delivery before using this for anything real.
 
 ## Adding a resource
 
-Copy `src/items/` (repository → service → controller → module, plus `schemas/`) the same
-way the dashboard's `pnpm new:page` copies `example-page/`. Each layer has one reason to
-change:
+```bash
+pnpm new:resource product products
+```
+
+Copies `src/items/` (repository → service → controller → module, plus `schemas/`) to
+`src/products/`, renaming every identifier — including the `@Controller` path, the
+`@RequirePermission` strings, and the Prisma client accessor (`this.prisma.item` →
+`this.prisma.product`) — and appends a matching `model`/`enum` to `prisma/schema.prisma`,
+copied from `model Item`/`enum ItemStatus`. The one thing it protects on purpose: the
+generic `{ items, total, page, pageSize }` field name in the paginated response type stays
+`items` for every resource — that's the wire-format contract with the dashboard's
+`response-envelope.ts`, not something to rename per entity.
+
+It prints the same kind of "required next step" list as the dashboard's `pnpm new:page`:
+registering the new module in `app.module.ts` and running `pnpm db:migrate` both fail loudly
+(a missing import, a table that doesn't exist) rather than silently, so there's no way to
+forget them and have the app "work" incorrectly.
+
+Each layer has one reason to change:
 
 ```text
 Controller   → HTTP surface: routes, permission requirements, request validation
@@ -97,6 +113,7 @@ writing e2e tests that actually query data.
 |---|---|
 | `pnpm dev` | Start with hot reload |
 | `pnpm build` | Compile to `dist/` |
+| `pnpm new:resource <singular> <plural>` | Scaffold a new resource from `items/` (see "Adding a resource") |
 | `pnpm typecheck` / `pnpm lint` / `pnpm lint:ci` | As in the dashboard app |
 | `pnpm test` / `pnpm test:e2e` | Unit / e2e (Vitest) |
 | `pnpm db:migrate` | Apply Prisma migrations (dev) |

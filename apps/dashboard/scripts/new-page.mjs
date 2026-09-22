@@ -16,15 +16,28 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const [singular, plural] = process.argv.slice(2);
-
 function fail(message) {
-  console.error(message);
+  console.error(`✖ ${message}`);
   process.exit(1);
 }
 
+function printUsage() {
+  console.log('Usage: pnpm new:page <singular-kebab> <plural-kebab>');
+  console.log('Example: pnpm new:page user users');
+}
+
+const args = process.argv.slice(2);
+
+if (args.includes('--help') || args.includes('-h')) {
+  printUsage();
+  process.exit(0);
+}
+
+const [singular, plural] = args;
+
 if (!singular || !plural) {
-  fail('Usage: pnpm new:page <singular-kebab> <plural-kebab>\nExample: pnpm new:page user users');
+  printUsage();
+  fail('both a singular and a plural name are required.');
 }
 
 const kebabPattern = /^[a-z][a-z0-9-]*$/;
@@ -34,8 +47,12 @@ for (const [value, label] of [
   [plural, 'plural name'],
 ]) {
   if (!kebabPattern.test(value)) {
-    fail(`${label} must be lowercase kebab-case (e.g. "user"), got "${value}"`);
+    fail(`${label} must be lowercase kebab-case (e.g. "user"), got "${value}".`);
   }
+}
+
+if (singular === plural) {
+  fail('singular and plural names must be different (got the same value twice).');
 }
 
 function toPascalCase(kebab) {

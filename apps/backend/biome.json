@@ -7,7 +7,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["src/**", "test/**", "prisma/**", "*.json", "*.ts", "!src/generated"]
+    "includes": ["src/**", "test/**", "prisma/**", "scripts/**", "*.json", "*.ts", "!src/generated"]
   },
   "formatter": {
     "enabled": true,
@@ -46,5 +46,15 @@
     "formatter": {
       "enabled": true
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["scripts/**"],
+      "linter": {
+        "rules": {
+          "suspicious": { "noConsole": "off" }
+        }
+      }
+    }
+  ]
 }
