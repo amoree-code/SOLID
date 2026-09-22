@@ -16,10 +16,10 @@ import {
 import { Input } from '@/shared/components/ui/input';
 import { useTranslation } from '@/shared/i18n/use-translation';
 import { getErrorMessage } from '@/shared/services/error-normalizer';
-import { type LoginFormValues, loginFormSchema } from '../schemas/login-form.schema';
-import { login } from '../services/login.service';
+import { type SignupFormValues, signupFormSchema } from '../schemas/signup-form.schema';
+import { signup } from '../services/signup.service';
 
-export function LoginForm() {
+export function SignupForm() {
   const { t } = useTranslation('auth');
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -28,10 +28,10 @@ export function LoginForm() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginFormValues>({ resolver: zodResolver(loginFormSchema) });
+  } = useForm<SignupFormValues>({ resolver: zodResolver(signupFormSchema) });
 
-  const loginMutation = useMutation({
-    mutationFn: login,
+  const signupMutation = useMutation({
+    mutationFn: signup,
     onSuccess: async (tokens) => {
       sessionStorage.setAccessToken(tokens.accessToken);
       await queryClient.invalidateQueries({ queryKey: sessionKeys.currentUser() });
@@ -39,42 +39,47 @@ export function LoginForm() {
     },
   });
 
-  async function onSubmit(values: LoginFormValues) {
-    await loginMutation.mutateAsync(values);
+  async function onSubmit(values: SignupFormValues) {
+    await signupMutation.mutateAsync(values);
   }
 
   return (
     <Card className="w-full max-w-sm">
       <CardHeader className="text-center">
-        <CardTitle className="text-xl">{t('login.title')}</CardTitle>
+        <CardTitle className="text-xl">{t('signup.title')}</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="email">{t('login.email')}</FieldLabel>
+              <FieldLabel htmlFor="name">{t('signup.name')}</FieldLabel>
+              <Input id="name" type="text" autoComplete="name" {...register('name')} />
+              <FieldError errors={[errors.name]} />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="email">{t('signup.email')}</FieldLabel>
               <Input id="email" type="email" autoComplete="email" {...register('email')} />
               <FieldError errors={[errors.email]} />
             </Field>
             <Field>
-              <FieldLabel htmlFor="password">{t('login.password')}</FieldLabel>
+              <FieldLabel htmlFor="password">{t('signup.password')}</FieldLabel>
               <Input
                 id="password"
                 type="password"
-                autoComplete="current-password"
+                autoComplete="new-password"
                 {...register('password')}
               />
               <FieldError errors={[errors.password]} />
             </Field>
-            {loginMutation.isError ? (
-              <FieldError>{getErrorMessage(loginMutation.error)}</FieldError>
+            {signupMutation.isError ? (
+              <FieldError>{getErrorMessage(signupMutation.error)}</FieldError>
             ) : null}
             <Field>
-              <Button type="submit" disabled={loginMutation.isPending}>
-                {t('login.submit')}
+              <Button type="submit" disabled={signupMutation.isPending}>
+                {t('signup.submit')}
               </Button>
               <FieldDescription className="text-center">
-                {t('login.noAccount')} <Link to="/signup">{t('login.signUp')}</Link>
+                {t('signup.haveAccount')} <Link to="/login">{t('signup.signIn')}</Link>
               </FieldDescription>
             </Field>
           </FieldGroup>

@@ -15,7 +15,7 @@ support out of the box.
 | Tables | TanStack Table |
 | Forms | React Hook Form + Zod |
 | HTTP | Axios (single shared client) |
-| UI | Tailwind CSS + shadcn/ui-style primitives (Radix Slot, CVA) |
+| UI | Tailwind CSS + shadcn/ui-style primitives (Radix Slot, CVA) — theme source: [tweakcn.com/community](https://tweakcn.com/community) |
 | Lint/format | Biome |
 | Unit/integration tests | Vitest + Testing Library |
 | E2E tests | Playwright |
@@ -115,7 +115,7 @@ run `pnpm new:page <singular> <plural>` (see above) instead of copying it by han
    page references it immediately, so this is required for the build to type-check — that's
    intentional: a missing permission group fails loudly instead of silently borrowing the
    wrong one).
-4. Add a navigation entry in `shared/components/layout/dashboard-sidebar.tsx`.
+4. Add a navigation entry in `shared/components/app-sidebar.tsx`.
 5. Add translation keys to `shared/i18n/locales/*/navigation.json` (and any page-specific copy).
 6. Update `schemas/<singular>.schema.ts` to match the real backend fields, and point
    `services/*.ts` at the real endpoints.

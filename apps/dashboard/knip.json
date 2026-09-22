@@ -6,7 +6,8 @@
     "src/shared/services/health.service.ts",
     "src/shared/services/upload.service.ts",
     "src/shared/testing/router-wrapper.tsx",
-    "src/shared/testing/test-utils.ts"
+    "src/shared/testing/test-utils.ts",
+    "src/shared/components/ui/**"
   ],
   "ignoreDependencies": ["tailwindcss"],
   "ignoreExportsUsedInFile": true,

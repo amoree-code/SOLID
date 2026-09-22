@@ -16,6 +16,7 @@
       "*.tsx",
       "*.mjs",
       "!src/routeTree.gen.ts",
+      "!src/shared/components/ui",
       "!.claude/worktrees",
       "!build",
       "!coverage",

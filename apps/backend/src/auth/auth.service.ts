@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -50,6 +50,25 @@ export class AuthService {
         errors: null,
       });
     }
+
+    return this.issueTokens(user);
+  }
+
+  async register(name: string, email: string, password: string): Promise<AuthTokens> {
+    const existing = await this.prisma.user.findUnique({ where: { email } });
+
+    if (existing) {
+      throw new ConflictException({
+        message: 'An account with this email already exists.',
+        code: 'EMAIL_TAKEN',
+        errors: null,
+      });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const user = await this.prisma.user.create({
+      data: { name, email, passwordHash, roles: ['user'], permissions: [] },
+    });
 
     return this.issueTokens(user);
   }

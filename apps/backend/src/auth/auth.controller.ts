@@ -16,6 +16,7 @@ import { AuthService } from './auth.service.js';
 import { CurrentUser } from './decorators/current-user.decorator.js';
 import { Public } from './decorators/public.decorator.js';
 import { type LoginInput, loginSchema } from './schemas/login.schema.js';
+import { type RegisterInput, registerSchema } from './schemas/register.schema.js';
 import { type VerifyInput, verifySchema } from './schemas/verify.schema.js';
 import type { AuthTokens, AuthUser } from './types/auth-user.type.js';
 
@@ -34,6 +35,17 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ): Promise<AuthTokens> {
     const tokens = await this.authService.login(body.email, body.password);
+    return this.respondWithTokens(tokens, response);
+  }
+
+  @Public()
+  @Post('register')
+  @UsePipes(new ZodValidationPipe(registerSchema))
+  async register(
+    @Body() body: RegisterInput,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<AuthTokens> {
+    const tokens = await this.authService.register(body.name, body.email, body.password);
     return this.respondWithTokens(tokens, response);
   }
 

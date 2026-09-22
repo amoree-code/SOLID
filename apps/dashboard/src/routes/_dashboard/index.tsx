@@ -1,11 +1,16 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useTranslation } from '@/shared/i18n/use-translation';
+import { ChartAreaInteractive } from '@/shared/components/chart-area-interactive';
+import { SectionCards } from '@/shared/components/section-cards';
 
 export const Route = createFileRoute('/_dashboard/')({
   component: DashboardHome,
 });
 
 function DashboardHome() {
-  const { t } = useTranslation('navigation');
-  return <h1 className="text-2xl font-semibold">{t('nav.dashboard')}</h1>;
+  return (
+    <div className="flex flex-col gap-4 md:gap-6">
+      <SectionCards />
+      <ChartAreaInteractive />
+    </div>
+  );
 }
