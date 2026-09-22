@@ -16,27 +16,46 @@ Each app has its own README with its own architecture notes — start there once
 
 ## Using this repo
 
-**Working on everything together** (this workspace, on this machine):
+**1. Everything together** (the full workspace, all three apps):
 
 ```bash
-git clone <this-repo>
+git clone https://github.com/amoree-code/SOLID.git
 cd SOLID
 pnpm install
 pnpm --filter dashboard dev
 pnpm --filter backend dev
+pnpm --filter portfolio dev
 ```
 
-**Starting a new project from just one app** (no workspace, no history, no other apps):
+**2. Just the backend** (no workspace, no history, no other apps):
 
 ```bash
-npx degit <this-repo>/apps/dashboard my-project
-cd my-project
+npx degit amoree-code/SOLID/apps/backend my-backend
+cd my-backend
 pnpm install
+pnpm dev
 ```
 
-Swap `apps/dashboard` for `apps/backend` or `apps/portfolio`. `degit` needs this repo to be
-pushed somewhere reachable (GitHub, a private git host) — it can't pull from a purely local
-clone.
+**3. Just the dashboard**:
+
+```bash
+npx degit amoree-code/SOLID/apps/dashboard my-dashboard
+cd my-dashboard
+pnpm install
+pnpm dev
+```
+
+**4. Just the portfolio**:
+
+```bash
+npx degit amoree-code/SOLID/apps/portfolio my-portfolio
+cd my-portfolio
+pnpm install
+pnpm dev
+```
+
+`degit` pulls straight from GitHub, so options 2–4 need nothing local beyond `npx` — no cloning
+the full repo first.
 
 ## Shared at the root, on purpose
 
