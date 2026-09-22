@@ -25,17 +25,30 @@ pnpm install
 pnpm dev
 ```
 
-Or pull just one app straight from GitHub, with nothing local beyond `npx` — no cloning the
-full repo first:
+Or pull straight from GitHub with nothing local beyond `npx` — no cloning the full repo first.
+Run any one of these on its own, or any combination of them — each is completely independent,
+so taking one, two, or all three is exactly the same three commands repeated:
 
 ```bash
+# Just the backend
 npx degit amoree-code/SOLID/apps/backend my-backend
-cd my-backend
-pnpm install
-pnpm dev
+cd my-backend && pnpm install && pnpm dev
 ```
 
-Swap `apps/backend` for `apps/dashboard` or `apps/portfolio` for the other two.
+```bash
+# Just the dashboard
+npx degit amoree-code/SOLID/apps/dashboard my-dashboard
+cd my-dashboard && pnpm install && pnpm dev
+```
+
+```bash
+# Just the portfolio
+npx degit amoree-code/SOLID/apps/portfolio my-portfolio
+cd my-portfolio && pnpm install && pnpm dev
+```
+
+Want two or three of them? Run the matching commands above side by side, into separate
+folders — there's no combined install step, because there's nothing shared to install once.
 
 ## Why apps live in one repo but stay decoupled
 
