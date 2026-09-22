@@ -21,6 +21,12 @@ pre-commit:
       run: pnpm exec biome check --write {staged_files}
       stage_fixed: true
 
+    - name: biome (portfolio)
+      root: "apps/portfolio/"
+      glob: "apps/portfolio/**/*.{js,ts,jsx,tsx,json,css}"
+      run: pnpm exec biome check --write {staged_files}
+      stage_fixed: true
+
 pre-push:
   jobs:
     - name: verify (every app)

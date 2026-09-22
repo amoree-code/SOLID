@@ -1,0 +1,73 @@
+name: Portfolio CI
+
+on:
+  push:
+    branches: [main]
+    paths: ["apps/portfolio/**", ".github/workflows/portfolio-ci.yml"]
+  pull_request:
+    paths: ["apps/portfolio/**", ".github/workflows/portfolio-ci.yml"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: portfolio-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: apps/portfolio
+
+jobs:
+  quality:
+    name: Typecheck, lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile --filter portfolio
+        working-directory: .
+      - run: pnpm typecheck
+      - run: pnpm lint:ci
+
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile --filter portfolio
+        working-directory: .
+      - run: pnpm test
+
+  e2e:
+    name: Build & Playwright E2E
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile --filter portfolio
+        working-directory: .
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: portfolio-playwright-report
+          path: apps/portfolio/playwright-report/
+          retention-days: 7
