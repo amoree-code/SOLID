@@ -6,6 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "type": "module",
+  "packageManager": "pnpm@10.26.1",
   "files": [
     "dist",
     "prisma"
@@ -72,5 +73,8 @@
     "typescript": "^6.0.2",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^4.1.2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["@prisma/engines", "bcrypt", "prisma"]
   }
 }
