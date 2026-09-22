@@ -1,0 +1,91 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [main]
+    paths: ["apps/backend/**", ".github/workflows/backend-ci.yml"]
+  pull_request:
+    paths: ["apps/backend/**", ".github/workflows/backend-ci.yml"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: apps/backend
+
+jobs:
+  quality:
+    name: Typecheck, lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile --filter backend
+        working-directory: .
+      - run: pnpm db:generate
+      - run: pnpm typecheck
+      - run: pnpm lint:ci
+
+  test:
+    name: Unit & e2e tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: solid_backend_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/solid_backend_test?schema=public
+      CORS_ORIGIN: http://localhost:5173
+      JWT_ACCESS_SECRET: ci-only-access-secret-not-for-production
+      JWT_ACCESS_EXPIRES_IN: 15m
+      JWT_REFRESH_SECRET: ci-only-refresh-secret-not-for-production
+      JWT_REFRESH_EXPIRES_IN: 7d
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile --filter backend
+        working-directory: .
+      - run: pnpm db:generate
+      - run: pnpm exec prisma migrate deploy
+      - run: pnpm test
+      - run: pnpm test:e2e
+
+  build:
+    name: Production build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile --filter backend
+        working-directory: .
+      - run: pnpm db:generate
+      - run: pnpm build

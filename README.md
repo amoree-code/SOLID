@@ -8,8 +8,8 @@ developed together, but every app under `apps/` is a fully standalone project �
 ```text
 apps/
 ├── dashboard/   Frontend template — TanStack Router/Query/Table, i18n+RTL, permissions
-├── backend/     NestJS + SOLID — DI-first API foundation
-└── portfolio/   Next.js — personal site foundation
+├── backend/     NestJS + SOLID — DI-first API foundation, paired 1:1 with dashboard's contract
+└── portfolio/   Next.js — personal site foundation (not scaffolded yet)
 ```
 
 Each app has its own README with its own architecture notes — start there once you're inside one.

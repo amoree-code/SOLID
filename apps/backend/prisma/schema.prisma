@@ -1,0 +1,43 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Matches the dashboard template's AuthUser shape 1:1 (id/name/email/roles/
+/// permissions) so the two apps need zero field-mapping between them.
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  roles        String[]
+  permissions  String[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("users")
+}
+
+/// Reference resource — mirrors the dashboard's `example-page` Item schema
+/// (id/name/status/createdAt) exactly. Copy this pattern for a real resource.
+model Item {
+  id        String     @id @default(cuid())
+  name      String
+  status    ItemStatus @default(active)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("items")
+}
+
+enum ItemStatus {
+  active
+  inactive
+}

@@ -15,6 +15,12 @@ pre-commit:
       run: pnpm exec biome check --write {staged_files}
       stage_fixed: true
 
+    - name: biome (backend)
+      root: "apps/backend/"
+      glob: "apps/backend/**/*.{js,ts,json}"
+      run: pnpm exec biome check --write {staged_files}
+      stage_fixed: true
+
 pre-push:
   jobs:
     - name: verify (every app)
