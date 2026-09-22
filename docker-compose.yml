@@ -13,11 +13,11 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: solid_backend
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - solid_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
       interval: 5s
       timeout: 5s
       retries: 10
@@ -26,7 +26,7 @@ services:
     build:
       context: .
       dockerfile: apps/backend/Dockerfile
-    profiles: ["full"]
+    profiles: ['full']
     depends_on:
       postgres:
         condition: service_healthy
@@ -38,7 +38,7 @@ services:
       JWT_REFRESH_SECRET: dev-only-refresh-secret-change-me
       JWT_REFRESH_EXPIRES_IN: 7d
     ports:
-      - "3000:3000"
+      - '3000:3000'
 
 volumes:
   solid_postgres_data:
