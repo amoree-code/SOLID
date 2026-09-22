@@ -1,9 +1,11 @@
-name: CI
+name: Dashboard CI
 
 on:
   push:
     branches: [main]
+    paths: ['apps/dashboard/**', '.github/workflows/dashboard-ci.yml']
   pull_request:
+    paths: ['apps/dashboard/**', '.github/workflows/dashboard-ci.yml']
 
 # No job here writes to the repo (no release, no comment-back, no push) —
 # default GITHUB_TOKEN to read-only rather than relying on org-level defaults.
@@ -11,8 +13,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: dashboard-ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: apps/dashboard
 
 jobs:
   quality:
@@ -25,7 +31,9 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile --filter dashboard
+        working-directory: .
       - run: pnpm typecheck
       - run: pnpm lint:ci
       - run: pnpm knip
@@ -40,7 +48,9 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile --filter dashboard
+        working-directory: .
       - run: pnpm test
 
   build:
@@ -53,13 +63,15 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile --filter dashboard
+        working-directory: .
       - run: pnpm build
       - run: pnpm size
       - uses: actions/upload-artifact@v4
         with:
-          name: dist
-          path: dist/
+          name: dashboard-dist
+          path: apps/dashboard/dist/
           retention-days: 3
 
   e2e:
@@ -73,13 +85,15 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile --filter dashboard
+        working-directory: .
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm build
       - run: pnpm e2e
       - if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
-          path: playwright-report/
+          name: dashboard-playwright-report
+          path: apps/dashboard/playwright-report/
           retention-days: 7

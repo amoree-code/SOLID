@@ -1,16 +1,21 @@
+# Repo-wide hooks. Each app under apps/* is also a fully standalone project
+# (its own package.json, its own tooling) — these hooks are a monorepo-only
+# convenience, not something a degit'd single-app clone depends on.
+#
+# Biome jobs run with `root:` set to the app's own directory (not the repo
+# root) because Biome 2's workspace auto-detection treats a pnpm-workspace
+# root and a nested app-level `"root": true` config as two conflicting root
+# configs otherwise.
+
 pre-commit:
-  parallel: true
   jobs:
-    - name: biome
-      glob: "*.{js,ts,jsx,tsx,json,css}"
+    - name: biome (dashboard)
+      root: "apps/dashboard/"
+      glob: "apps/dashboard/**/*.{js,ts,jsx,tsx,json,css}"
       run: pnpm exec biome check --write {staged_files}
       stage_fixed: true
 
-    - name: typecheck
-      glob: "*.{ts,tsx}"
-      run: pnpm typecheck
-
 pre-push:
   jobs:
-    - name: verify
-      run: pnpm verify
+    - name: verify (every app)
+      run: pnpm -r --if-present run verify
