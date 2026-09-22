@@ -1,9 +1,9 @@
 # SOLID
 
 A personal collection of ready-to-clone project foundations, each independent and each built
-around SOLID principles for its own domain. This repo is a `pnpm` workspace so the apps can be
-developed together, but every app under `apps/` is a fully standalone project — its own
-`package.json`, its own tooling, nothing it needs living only at the workspace root.
+around SOLID principles for its own domain. Every app under `apps/` is fully standalone — its
+own `package.json`, its own lockfile, its own CI workflow, its own Docker build. Nothing here
+links one app to another; there is no shared workspace, no shared lockfile, no shared tooling.
 
 ```text
 apps/
@@ -16,18 +16,17 @@ Each app has its own README with its own architecture notes — start there once
 
 ## Using this repo
 
-**1. Everything together** (the full workspace, all three apps):
+Every app is used the same way, on its own, from inside its own folder:
 
 ```bash
 git clone https://github.com/amoree-code/SOLID.git
-cd SOLID
+cd SOLID/apps/dashboard   # or apps/backend, or apps/portfolio
 pnpm install
-pnpm --filter dashboard dev
-pnpm --filter backend dev
-pnpm --filter portfolio dev
+pnpm dev
 ```
 
-**2. Just the backend** (no workspace, no history, no other apps):
+Or pull just one app straight from GitHub, with nothing local beyond `npx` — no cloning the
+full repo first:
 
 ```bash
 npx degit amoree-code/SOLID/apps/backend my-backend
@@ -36,38 +35,16 @@ pnpm install
 pnpm dev
 ```
 
-**3. Just the dashboard**:
+Swap `apps/backend` for `apps/dashboard` or `apps/portfolio` for the other two.
 
-```bash
-npx degit amoree-code/SOLID/apps/dashboard my-dashboard
-cd my-dashboard
-pnpm install
-pnpm dev
-```
+## Why apps live in one repo but stay decoupled
 
-**4. Just the portfolio**:
+They're grouped here for convenience only — so related work is easy to find in one place. There
+is deliberately no `pnpm-workspace.yaml`, no root `package.json`, no shared lockfile, and no
+root-level git hooks: cloning or `degit`-ing a single app never pulls in anything from the
+others, and nothing in one app's `package.json` or lockfile references another.
 
-```bash
-npx degit amoree-code/SOLID/apps/portfolio my-portfolio
-cd my-portfolio
-pnpm install
-pnpm dev
-```
-
-`degit` pulls straight from GitHub, so options 2–4 need nothing local beyond `npx` — no cloning
-the full repo first.
-
-## Shared at the root, on purpose
-
-Only things that make sense repo-wide live here, and every one of them is a convenience for
-working across apps — never something an individual app depends on to function:
-
-| File | Purpose |
-|---|---|
-| `pnpm-workspace.yaml` | Links `apps/*` into one workspace |
-| `package.json` | Root dev tooling only (`biome`, `lefthook`) — no app code |
-| `lefthook.yml` | Git hooks: lints staged files repo-wide on commit, runs every app's `verify` on push |
-| `.github/workflows/*-ci.yml` | One workflow per app, path-filtered — a change in `apps/dashboard/**` only runs `dashboard-ci.yml` |
-
-Each app keeps its own `biome.json`, its own lint/test/build scripts, and its own CI workflow.
-Nothing here is required for an app to work once it's `degit`'d out on its own.
+The only thing that has to live at the repo root is `.github/workflows/*-ci.yml` — GitHub
+Actions only ever reads workflows from that exact path, no way around it. Each workflow is
+still fully independent: it's path-filtered to its own app's folder and only ever installs and
+runs that one app's own `package.json`/lockfile.

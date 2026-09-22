@@ -25,13 +25,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: apps/portfolio/package.json
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
-      - run: pnpm install --frozen-lockfile --filter portfolio
-        working-directory: .
+          cache-dependency-path: apps/portfolio/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm lint:ci
 
@@ -41,13 +42,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: apps/portfolio/package.json
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
-      - run: pnpm install --frozen-lockfile --filter portfolio
-        working-directory: .
+          cache-dependency-path: apps/portfolio/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
       - run: pnpm test
 
   e2e:
@@ -56,13 +58,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: apps/portfolio/package.json
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
-      - run: pnpm install --frozen-lockfile --filter portfolio
-        working-directory: .
+          cache-dependency-path: apps/portfolio/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm e2e
       - if: failure()
