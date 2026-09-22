@@ -8,7 +8,7 @@ point with the structure already right.
 | Layer | Choice |
 |---|---|
 | Framework | Next.js 16 (App Router) |
-| Styling | Tailwind CSS 4 |
+| Styling | Tailwind CSS 4 + shadcn/ui-style primitives (Radix Slot, CVA) — theme source: [tweakcn.com/community](https://tweakcn.com/community) |
 | Lint/format | Biome |
 | Unit tests | Vitest + Testing Library |
 | E2E | Playwright |

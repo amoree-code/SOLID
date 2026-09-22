@@ -23,18 +23,20 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
-    "@radix-ui/react-slot": "^1.3.3",
+    "@tabler/icons-react": "^3.47.0",
     "@tanstack/react-query": "^5.103.1",
     "@tanstack/react-router": "^1.170.38",
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/zod-adapter": "^1.167.0",
     "axios": "^1.20.0",
     "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
+    "cn": "^0.4.0",
+    "lucide-react": "^1.47.0",
+    "radix-ui": "^1.6.7",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-hook-form": "^7.88.0",
-    "tailwind-merge": "^3.7.0",
+    "recharts": "3.8.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {

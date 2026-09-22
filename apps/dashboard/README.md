@@ -15,7 +15,7 @@ support out of the box.
 | Tables | TanStack Table |
 | Forms | React Hook Form + Zod |
 | HTTP | Axios (single shared client) |
-| UI | Tailwind CSS + shadcn/ui-style primitives (Radix Slot, CVA) |
+| UI | Tailwind CSS + shadcn/ui-style primitives (Radix Slot, CVA) — theme source: [tweakcn.com/community](https://tweakcn.com/community) |
 | Lint/format | Biome |
 | Unit/integration tests | Vitest + Testing Library |
 | E2E tests | Playwright |
