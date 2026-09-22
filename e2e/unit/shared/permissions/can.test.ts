@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { AuthUser } from '@/shared/auth/auth.types';
+import type { AuthUser } from '@/shared/auth/auth.schema';
 import { can, canAll, canAny } from '@/shared/permissions/can';
 import { permissions } from '@/shared/permissions/permission-map';
 

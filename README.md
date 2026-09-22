@@ -1,8 +1,9 @@
 # SOLID Dashboard Template
 
 A reusable, route-first frontend template for internal dashboards: TypeScript strict mode,
-TanStack Router/Query/Table, colocated page ownership, typed permissions, and multi-locale
-(English / Arabic / Kurdish Sorani / Kurdish Kurmanji) RTL support out of the box.
+TanStack Router/Query/Table, colocated page ownership, backend-driven permissions validated
+at the boundary, and multi-locale (English / Arabic / Kurdish Sorani / Kurdish Kurmanji) RTL
+support out of the box.
 
 ## Stack
 
@@ -167,6 +168,11 @@ If your backend's envelope doesn't match any of those, add the shape to
 `paginatedEnvelopeSchema` in that file — once, for every page — rather than teaching each
 page's service to guess its own shape.
 
+`/auth/me`, `/auth/login`, `/auth/verify`, and `/auth/refresh` are validated the same way,
+through `shared/auth/auth.schema.ts` (`authUserSchema`, `authTokensSchema`) — a renamed or
+missing `permissions`/`roles` field fails loudly there instead of silently making every
+`can()` check return `false` with no error anywhere.
+
 ## Auth, sessions, and permissions
 
 - `shared/auth/session-storage.ts` is the **only** place that touches token storage. Swap its
@@ -175,23 +181,37 @@ page's service to guess its own shape.
 - `shared/services/http-client.ts` attaches the access token, and on a `401` funnels all
   concurrent requests through a single shared refresh promise — no duplicate refresh calls,
   no infinite loops.
-- `shared/permissions/permission-map.ts` defines named, typed capabilities (`items.read`, not
-  a CRUD letter or a raw role string). Enforce them at the route (`requirePermission` in
-  `beforeLoad`) and at the component (`<PermissionGuard permission={...}>`).
+- `shared/auth/session.ts` → `logout()` calls `POST /auth/logout` before clearing the local
+  token (best-effort — local cleanup happens either way). Without this, a still-valid
+  refresh cookie could keep minting access tokens after the user believes they've signed out.
 - **The backend remains authoritative.** Hiding a button or blocking a route client-side is a
   UX nicety, not a security boundary.
 
-**What's dynamic vs. what's static, on purpose:**
+**Permission values are 100% backend-driven — nothing about their shape is assumed:**
 
-| | Source | Why |
-|---|---|---|
-| The permissions a *specific user* has (`user.permissions: string[]`) | 100% dynamic — comes from `GET /auth/me` | Grant/revoke access from the backend with zero frontend deploys. |
-| The *catalog* of permission names (`permission-map.ts`) | Static, in code | Typed capability names (`permissions.items.read`) instead of raw strings — autocomplete, and a typo fails at compile time instead of silently denying access at runtime. This is the literal spec: *"Permissions use typed, descriptive capability names."* |
+`Permission` (`shared/permissions/permission.types.ts`) is a plain `string`, not a union
+derived from a local literal map. `shared/permissions/permission-map.ts` still exists, but
+only as example constants for autocomplete/one-place-to-rename — it is **not** the source of
+truth for what permissions exist, and nothing rejects a permission string just because it
+isn't declared there. The one thing that actually is validated is the *shape* of
+`user.permissions` (an array of strings, via `authUserSchema` above) — not the specific
+values inside it, which are the backend's to define however it names them
+(`items.read`, `ITEMS_READ`, `item:read`, a GUID — `can()` just does a string `.includes()`).
 
-If your backend's permission catalog itself changes without a frontend deploy (e.g. an
-admin UI defines new capability names at runtime), that's a different, fully-dynamic model —
-`Permission` would become `string` and you lose the compile-time typo check. Don't make that
-trade unless you actually have that requirement.
+Earlier drafts of this template derived `Permission` from the literal strings in
+`permission-map.ts`, which quietly assumed the frontend could invent the backend's naming
+convention in advance. If your backend's real values don't match the examples in
+`permission-map.ts`, update the constants to match — there's no type error either way, so
+this is a naming-consistency habit, not a compiler-enforced one.
+
+**Known trade-off — recorded, not fixed here:** the access token lives in `localStorage`
+(see `session-storage.ts`), which any XSS elsewhere in the app could read. Moving it to
+memory-only (re-hydrated via a `httpOnly` refresh cookie on load) is the stronger option
+once your backend supports that refresh flow — swap it behind `session-storage.ts` when it
+does. Relatedly, the cookie-based refresh flow (`refresh-session.ts`) has no CSRF token
+plumbed through it; that's a backend-side control (`SameSite` cookie attributes, a CSRF
+token endpoint) this template can't add on its own, but budget for it before relying on
+cookies in production.
 
 ## Internationalization
 

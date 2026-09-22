@@ -1,7 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import { sessionKeys, useSession } from '@/shared/auth/session';
-import { sessionStorage } from '@/shared/auth/session-storage';
+import { logout, sessionKeys, useSession } from '@/shared/auth/session';
 import { Button } from '@/shared/components/ui/button';
 import { useTranslation } from '@/shared/i18n/use-translation';
 import { LocaleSwitcher } from './locale-switcher';
@@ -14,7 +13,7 @@ export function DashboardHeader() {
   const queryClient = useQueryClient();
 
   async function handleSignOut() {
-    sessionStorage.clear();
+    await logout();
     await queryClient.invalidateQueries({ queryKey: sessionKeys.currentUser() });
     await navigate({ to: '/login' });
   }

@@ -1,4 +1,4 @@
-import type { AuthUser } from '@/shared/auth/auth.types';
+import type { AuthUser } from '@/shared/auth/auth.schema';
 import type { Permission } from './permission.types';
 
 export function can(user: AuthUser | null, permission: Permission): boolean {

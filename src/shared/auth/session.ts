@@ -1,6 +1,6 @@
 import { type QueryClient, queryOptions, useQuery } from '@tanstack/react-query';
 import { httpClient } from '@/shared/services/http-client';
-import type { AuthUser } from './auth.types';
+import { type AuthUser, authUserSchema } from './auth.schema';
 import { sessionStorage } from './session-storage';
 
 export const sessionKeys = {
@@ -13,8 +13,8 @@ async function getCurrentUser(): Promise<AuthUser | null> {
     return null;
   }
 
-  const response = await httpClient.get<AuthUser>('/auth/me');
-  return response.data;
+  const response = await httpClient.get<unknown>('/auth/me');
+  return authUserSchema.parse(response.data);
 }
 
 export function currentUserOptions() {
@@ -31,6 +31,21 @@ export function currentUserOptions() {
  */
 export function getSessionUser(queryClient: QueryClient): AuthUser | null {
   return queryClient.getQueryData<AuthUser | null>(sessionKeys.currentUser()) ?? null;
+}
+
+/**
+ * Best-effort server-side revocation: local cleanup must happen either way
+ * (the user has left this device's session regardless of network state),
+ * so a failed `/auth/logout` call never blocks it — but without this call,
+ * a still-valid refresh cookie could mint new access tokens after the user
+ * believes they've logged out.
+ */
+export async function logout(): Promise<void> {
+  try {
+    await httpClient.post('/auth/logout');
+  } finally {
+    sessionStorage.clear();
+  }
 }
 
 export function useSession() {
