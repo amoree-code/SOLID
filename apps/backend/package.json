@@ -75,6 +75,10 @@
     "vitest": "^4.1.2"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["@prisma/engines", "bcrypt", "prisma"]
+    "onlyBuiltDependencies": [
+      "@prisma/engines",
+      "bcrypt",
+      "prisma"
+    ]
   }
 }
