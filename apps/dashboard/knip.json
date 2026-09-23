@@ -1,7 +1,7 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": ["src/routes/**/*.{ts,tsx}"],
-  "project": ["src/**/*.{ts,tsx}"],
+  "project": ["src/**/*.{ts,tsx,css}"],
   "ignore": [
     "src/shared/services/health.service.ts",
     "src/shared/services/upload.service.ts",
@@ -9,7 +9,6 @@
     "src/shared/testing/test-utils.ts",
     "src/shared/components/ui/**"
   ],
-  "ignoreDependencies": ["tailwindcss"],
   "ignoreExportsUsedInFile": true,
   "vite": {
     "config": "vite.config.ts"
