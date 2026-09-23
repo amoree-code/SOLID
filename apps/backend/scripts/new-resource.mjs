@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 /**
- * Scaffolds a new NestJS resource from the `items` reference implementation:
- * copies src/items/ -> src/<plural>/, renames every file and identifier
- * (including the @Controller path, permission strings, and Prisma client
- * accessor), and appends a matching model + enum to prisma/schema.prisma.
+ * Scaffolds a new NestJS resource from the `example-resource` reference module:
+ * copies src/modules/example-resource/ -> src/modules/<singular>/, renames every
+ * file and identifier (classes, the @Controller route, the Prisma accessor and
+ * table name), and appends a matching model + enum to prisma/schema.prisma.
+ * The module's HTTP spec is copied too, so the new resource starts tested.
+ *
+ * Backend code only — it never generates frontend files, auth, or permissions.
  *
  * Usage: pnpm new:resource <singular-kebab> <plural-kebab>
- * Example: pnpm new:resource product products
+ * Example: pnpm new:resource product products   ->  GET /products
  *
  * Deliberately does NOT touch app.module.ts or run a migration — wiring the
  * new module in and reviewing the generated Prisma model are small,
@@ -70,12 +73,12 @@ function toCamelCase(kebab) {
 
 const PascalSingular = toPascalCase(singular);
 const camelSingular = toCamelCase(singular);
-const PascalPlural = toPascalCase(plural);
-const camelPlural = toCamelCase(plural);
+const humanSingular = singular.replaceAll('-', ' ');
+const snakePlural = plural.replaceAll('-', '_');
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const templateDir = path.join(repoRoot, 'src/items');
-const targetDir = path.join(repoRoot, 'src', plural);
+const templateDir = path.join(repoRoot, 'src/modules/example-resource');
+const targetDir = path.join(repoRoot, 'src/modules', singular);
 const schemaPath = path.join(repoRoot, 'prisma/schema.prisma');
 
 if (!fs.existsSync(templateDir)) {
@@ -90,28 +93,22 @@ if (!fs.existsSync(schemaPath)) {
   fail(`Prisma schema not found: ${path.relative(repoRoot, schemaPath)}`);
 }
 
-// Order matters, longest/most-specific match first, so nothing is left for a
-// later, broader rule to corrupt:
-//   1. "Items" (capitalized plural — ItemsController, ItemsService...)
-//   2. "Item" (capitalized singular — everything "Items" didn't already consume)
-//   3. "items" immediately before `.`, `'`, `"`, or a capital letter — the
-//      plural appears in a file path ('./items.service.js'), a quoted
-//      string ('items.read', @Controller('items'), @@map("items")), or a
-//      camelCase prefix (itemsService) — never as the bare word "items",
-//      which is the generic PaginatedResponse.items field and must stay
-//      "items" for every resource.
-//   4. "item" not immediately followed by a literal "s" — guards the
-//      standalone word "items" a second time (defence in depth).
+// The reference names are distinctive multi-word tokens, so each form maps
+// one-to-one and nothing generic (like the `items` field of a paginated
+// response) can be caught by accident. Plural forms go first so the singular
+// rule never sees them.
 function transformContent(content) {
   return content
-    .replaceAll('Items', PascalPlural)
-    .replaceAll('Item', PascalSingular)
-    .replace(/items(?=[.'"A-Z])/g, camelPlural)
-    .replace(/item(?!s\b)/g, camelSingular);
+    .replaceAll('example-resources', plural)
+    .replaceAll('example_resources', snakePlural)
+    .replaceAll('example-resource', singular)
+    .replaceAll('ExampleResource', PascalSingular)
+    .replaceAll('exampleResource', camelSingular)
+    .replaceAll('Example resource', humanSingular[0].toUpperCase() + humanSingular.slice(1));
 }
 
 function transformName(name) {
-  return name.replace(/items/g, plural).replace(/item/g, singular);
+  return name.replaceAll('example-resource', singular);
 }
 
 function copyRecursive(srcPath, destPath) {
@@ -132,14 +129,14 @@ function copyRecursive(srcPath, destPath) {
 copyRecursive(templateDir, targetDir);
 
 // ---- Prisma: append a matching model + enum, extracted from the reference
-// schema's own `model Item { ... }` / `enum ItemStatus { ... }` blocks ----
+// schema's own `model ExampleResource { ... }` / `enum ExampleResourceStatus { ... }` blocks ----
 const schema = fs.readFileSync(schemaPath, 'utf8');
-const modelMatch = schema.match(/model Item \{[\s\S]*?\n\}\n/);
-const enumMatch = schema.match(/enum ItemStatus \{[\s\S]*?\n\}\n/);
+const modelMatch = schema.match(/model ExampleResource \{[\s\S]*?\n\}\n/);
+const enumMatch = schema.match(/enum ExampleResourceStatus \{[\s\S]*?\n\}\n/);
 
 if (!modelMatch || !enumMatch) {
   fail(
-    'Could not find "model Item" / "enum ItemStatus" in prisma/schema.prisma to use as a template — has the reference schema been renamed or removed?',
+    'Could not find "model ExampleResource" / "enum ExampleResourceStatus" in prisma/schema.prisma to use as a template — has the reference schema been renamed or removed?',
   );
 }
 
@@ -147,7 +144,7 @@ const newModel = transformContent(modelMatch[0]);
 const newEnum = transformContent(enumMatch[0]);
 fs.appendFileSync(schemaPath, `\n${newModel}\n${newEnum}`);
 
-// Column alignment in the appended block was copied from Item's — almost
+// Column alignment in the appended block was copied from ExampleResource's — almost
 // never right once the names change length. `prisma format` re-aligns the
 // whole file the same way `pnpm db:generate`/`db:migrate` already expect.
 try {
@@ -167,19 +164,14 @@ console.log(
 console.log('');
 console.log('Next steps (not automated — small, reviewable edits):');
 console.log('  1. Review the appended model in prisma/schema.prisma — field types and');
-console.log('     defaults were copied from Item and may not fit the new resource.');
-console.log('  2. REQUIRED to compile: register the module in src/app.module.ts —');
-console.log(`     import { ${PascalPlural}Module } from './${plural}/${plural}.module.js';`);
-console.log(`     and add it to the imports array.`);
+console.log('     defaults were copied from ExampleResource and may not fit.');
+console.log('  2. REQUIRED to compile: pnpm db:generate, then register the module in');
+console.log('     src/app.module.ts —');
+console.log(
+  `     import { ${PascalSingular}Module } from './modules/${singular}/${singular}.module.js';`,
+);
+console.log('     and add it to the imports array.');
 console.log('  3. REQUIRED for the database: pnpm db:migrate (creates and applies the');
 console.log('     migration for the new model).');
-console.log(`  4. Add "${plural}.*" permissions to whatever issues your JWTs (this`);
-console.log(`     template has no central permission catalog — see the ${plural}.controller.ts`);
-console.log('     @RequirePermission calls for the exact strings expected).');
-console.log(`  5. Update src/${plural}/schemas/${singular}.schema.ts to match the real fields`);
-console.log('     once you adjust the Prisma model.');
-console.log(`  6. Add tests for src/${plural}/ — there is no existing items.*.spec.ts to`);
-console.log(
-  '     copy from yet; follow the pattern in src/common/pipes/zod-validation.pipe.spec.ts',
-);
-console.log('     and src/auth/guards/permissions.guard.spec.ts.');
+console.log(`  4. Update ${relativeTarget}/schemas/ to match the real fields, then the`);
+console.log(`     copied ${singular}.controller.spec.ts assertions.`);

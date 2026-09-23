@@ -30,5 +30,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "e2e/unit"]
+  "include": ["src"]
 }

@@ -10,34 +10,19 @@ datasource db {
   provider = "postgresql"
 }
 
-/// Matches the dashboard template's AuthUser shape 1:1 (id/name/email/roles/
-/// permissions) so the two apps need zero field-mapping between them.
-model User {
-  id           String   @id @default(cuid())
-  name         String
-  email        String   @unique
-  passwordHash String
-  roles        String[]
-  permissions  String[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  @@map("users")
-}
-
-/// Reference resource — mirrors the dashboard's `example-page` Item schema
-/// (id/name/status/createdAt) exactly. Copy this pattern for a real resource.
-model Item {
-  id        String     @id @default(cuid())
+/// Reference resource — the pattern `pnpm new:resource` copies. Replace or
+/// delete it once the project has its own models.
+model ExampleResource {
+  id        String                @id @default(cuid())
   name      String
-  status    ItemStatus @default(active)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  status    ExampleResourceStatus @default(active)
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
 
-  @@map("items")
+  @@map("example_resources")
 }
 
-enum ItemStatus {
+enum ExampleResourceStatus {
   active
   inactive
 }

@@ -17,8 +17,9 @@ export default defineConfig(({ mode }) => ({
             autoCodeSplitting: true,
             routesDirectory: './src/routes',
             generatedRouteTree: './src/routeTree.gen.ts',
-            routeFileIgnorePattern:
-              '/(components|services|queries|schemas)/|/(permissions|types)\\.ts$',
+            // Matched against each file/folder *name* (not its path): a page's own
+            // folders and types.ts are never treated as routes.
+            routeFileIgnorePattern: '^(components|services|queries|schemas|tests|types\\.ts)$',
           }),
         ]),
     react(),
@@ -34,9 +35,11 @@ export default defineConfig(({ mode }) => ({
     environment: 'jsdom',
     setupFiles: ['./src/shared/testing/setup.ts'],
     css: true,
-    // All unit/integration tests live under e2e/unit/ (mirroring src/), not
-    // colocated with the code — e2e/flows/ holds Playwright specs instead,
-    // which this project must never pick up.
-    include: ['e2e/unit/**/*.{test,spec}.{ts,tsx}'],
+    // Unit/integration tests live next to the code they cover (a page's own
+    // `tests/` folder, or `tests/` beside a shared module). `e2e/` holds
+    // Playwright specs only, which Vitest must never pick up.
+    include: ['src/**/*.test.{ts,tsx}'],
+    // Tests never talk to a real server; this just satisfies env validation.
+    env: { VITE_API_BASE_URL: 'http://localhost:3000/api' },
   },
 }));

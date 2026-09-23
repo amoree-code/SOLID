@@ -4,39 +4,53 @@ import {
   type ExceptionFilter,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import type { Response } from 'express';
 
-type ErrorBody = {
+export type ErrorBody = {
   message: string;
   code: string | null;
   errors: Record<string, string[]> | null;
 };
 
+function isErrorBody(payload: unknown): payload is ErrorBody {
+  return (
+    typeof payload === 'object' &&
+    payload !== null &&
+    'message' in payload &&
+    typeof payload.message === 'string' &&
+    'code' in payload
+  );
+}
+
 /**
- * Normalizes every thrown error into the one shape the dashboard template's
- * `error-normalizer.ts` already expects: `{ message, code, errors }`. Without
- * this, Nest's default shape (`{ statusCode, message, error }`) only happens
- * to line up for some exceptions and not others, depending on what threw.
+ * Every error this API returns has one shape: `{ message, code, errors }`.
+ * Nest's default (`{ statusCode, message, error }`) varies with whatever threw;
+ * this makes it the same for every exception, and never leaks an unexpected
+ * error's internals to the client — those are logged instead.
  */
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
-  catch(exception: unknown, host: ArgumentsHost): void {
-    const ctx = host.switchToHttp();
-    const response = ctx.getResponse<Response>();
+  readonly logger = new Logger(HttpExceptionFilter.name);
 
+  catch(exception: unknown, host: ArgumentsHost): void {
+    const response = host.switchToHttp().getResponse<Response>();
     const { status, body } = this.normalize(exception);
     response.status(status).json(body);
   }
 
-  private normalize(exception: unknown): { status: number; body: ErrorBody } {
+  normalize(exception: unknown): { status: number; body: ErrorBody } {
     if (exception instanceof HttpException) {
       const status = exception.getStatus();
       const payload = exception.getResponse();
 
-      if (typeof payload === 'object' && payload !== null && 'code' in payload) {
-        // Already shaped by ZodValidationPipe or similar — pass through.
-        return { status, body: payload as ErrorBody };
+      if (isErrorBody(payload)) {
+        // Already shaped (ZodValidationPipe, or a service's own exception).
+        return {
+          status,
+          body: { message: payload.message, code: payload.code, errors: payload.errors ?? null },
+        };
       }
 
       const message =
@@ -54,9 +68,17 @@ export class HttpExceptionFilter implements ExceptionFilter {
       };
     }
 
+    this.logger.error(
+      exception instanceof Error ? (exception.stack ?? exception.message) : exception,
+    );
+
     return {
       status: HttpStatus.INTERNAL_SERVER_ERROR,
-      body: { message: 'Something went wrong. Please try again.', code: null, errors: null },
+      body: {
+        message: 'Something went wrong. Please try again.',
+        code: 'INTERNAL_ERROR',
+        errors: null,
+      },
     };
   }
 }

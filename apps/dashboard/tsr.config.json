@@ -2,5 +2,5 @@
   "target": "react",
   "routesDirectory": "./src/routes",
   "generatedRouteTree": "./src/routeTree.gen.ts",
-  "routeFileIgnorePattern": "/(components|services|queries|schemas)/|/(permissions|types)\\.ts$"
+  "routeFileIgnorePattern": "^(components|services|queries|schemas|tests|types\\.ts)$"
 }

@@ -2,13 +2,7 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": ["src/routes/**/*.{ts,tsx}"],
   "project": ["src/**/*.{ts,tsx,css}"],
-  "ignore": [
-    "src/shared/services/health.service.ts",
-    "src/shared/services/upload.service.ts",
-    "src/shared/testing/router-wrapper.tsx",
-    "src/shared/testing/test-utils.ts",
-    "src/shared/components/ui/**"
-  ],
+  "ignore": ["src/shared/components/ui/**"],
   "ignoreExportsUsedInFile": true,
   "vite": {
     "config": "vite.config.ts"

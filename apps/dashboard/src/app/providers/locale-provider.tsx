@@ -8,10 +8,35 @@ import {
   useMemo,
   useState,
 } from 'react';
-import type { Direction, Locale } from '@/shared/i18n/locale.types';
-import { DEFAULT_LOCALE, getDirection } from '@/shared/i18n/locale-config';
+
+/**
+ * Locale and direction only — no translation resources, no loading. A real
+ * project plugs its own translation system in on top of `locale`.
+ */
+export const SUPPORTED_LOCALES = ['en', 'ar', 'ckb', 'ku'] as const;
+
+export type Locale = (typeof SUPPORTED_LOCALES)[number];
+
+export type Direction = 'ltr' | 'rtl';
+
+const DEFAULT_LOCALE: Locale = 'en';
+
+const RTL_LOCALES: ReadonlySet<Locale> = new Set(['ar', 'ckb']);
 
 const LOCALE_STORAGE_KEY = 'app.locale';
+
+export function getDirection(locale: Locale): Direction {
+  return RTL_LOCALES.has(locale) ? 'rtl' : 'ltr';
+}
+
+function isLocale(value: unknown): value is Locale {
+  return SUPPORTED_LOCALES.includes(value as Locale);
+}
+
+function readStoredLocale(): Locale {
+  const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
+  return isLocale(stored) ? stored : DEFAULT_LOCALE;
+}
 
 type LocaleContextValue = {
   locale: Locale;
@@ -21,14 +46,14 @@ type LocaleContextValue = {
 
 const LocaleContext = createContext<LocaleContextValue | null>(null);
 
-function readStoredLocale(): Locale {
-  const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
-  return (stored as Locale | null) ?? DEFAULT_LOCALE;
-}
+type LocaleProviderProps = {
+  children: ReactNode;
+  initialLocale?: Locale;
+};
 
-export function LocaleProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(readStoredLocale);
-  const direction = useMemo(() => getDirection(locale), [locale]);
+export function LocaleProvider({ children, initialLocale }: LocaleProviderProps) {
+  const [locale, setLocaleState] = useState<Locale>(() => initialLocale ?? readStoredLocale());
+  const direction = getDirection(locale);
 
   useEffect(() => {
     document.documentElement.lang = locale;

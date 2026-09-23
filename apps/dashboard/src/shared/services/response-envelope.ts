@@ -1,5 +1,12 @@
 import { z } from 'zod';
-import type { PaginatedResponse } from '@/shared/query/query.types';
+
+/** The one list shape every page sees, whatever the backend actually sends. */
+export type PaginatedResponse<T> = {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
 
 /**
  * Backends disagree on how a paginated list is wrapped. Rather than have every

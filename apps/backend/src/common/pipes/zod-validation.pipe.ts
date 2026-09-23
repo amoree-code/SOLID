@@ -3,9 +3,9 @@ import type { ZodType } from 'zod';
 
 /**
  * The one place raw request input (body/query/params) gets validated before
- * a controller ever sees it — mirrors how every dashboard service parses a
- * response through a Zod schema before a page sees it. A field the client
- * got wrong fails here, as a normalized 400, not deep inside a service.
+ * a controller ever sees it. A field the client got wrong fails here, as a
+ * normalized 400 with per-field errors, not deep inside a service.
+ * Bind it per parameter: `@Body(new ZodValidationPipe(schema))`.
  */
 export class ZodValidationPipe implements PipeTransform {
   constructor(private readonly schema: ZodType) {}

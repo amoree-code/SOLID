@@ -1,4 +1,4 @@
-import type { Table } from '@tanstack/react-table';
+import type { Column, Table } from '@tanstack/react-table';
 import { Button } from '@/shared/components/ui/button';
 import {
   DropdownMenu,
@@ -6,39 +6,40 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu';
-import { useTranslation } from '@/shared/i18n/use-translation';
+
+// A string header is the user-facing name; fall back to the id for custom headers.
+function columnLabel<TData>(column: Column<TData, unknown>): string {
+  const { header } = column.columnDef;
+  return typeof header === 'string' && header ? header : column.id;
+}
 
 type DataTableColumnToggleProps<TData> = {
   table: Table<TData>;
 };
 
 export function DataTableColumnToggle<TData>({ table }: DataTableColumnToggleProps<TData>) {
-  const { t } = useTranslation('common');
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm">
-          {t('table.columns')}
+          Columns
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         {table
           .getAllLeafColumns()
           .filter((column) => column.getCanHide())
-          .map((column) => {
-            const { header } = column.columnDef;
-            return (
-              <DropdownMenuCheckboxItem
-                key={column.id}
-                checked={column.getIsVisible()}
-                onCheckedChange={(value) => column.toggleVisibility(value)}
-                onSelect={(event) => event.preventDefault()}
-              >
-                {typeof header === 'string' && header ? header : column.id}
-              </DropdownMenuCheckboxItem>
-            );
-          })}
+          .map((column) => (
+            <DropdownMenuCheckboxItem
+              key={column.id}
+              checked={column.getIsVisible()}
+              onCheckedChange={(value) => column.toggleVisibility(value)}
+              // Keep the menu open so several columns can be toggled in a row.
+              onSelect={(event) => event.preventDefault()}
+            >
+              {columnLabel(column)}
+            </DropdownMenuCheckboxItem>
+          ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );
