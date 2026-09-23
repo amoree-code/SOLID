@@ -1,0 +1,15 @@
+// Appended to prisma/schema.prisma by `pnpm new:resource` (names rewritten).
+model ExampleResource {
+  id        String                @id @default(cuid())
+  name      String
+  status    ExampleResourceStatus @default(active)
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+
+  @@map("example_resources")
+}
+
+enum ExampleResourceStatus {
+  active
+  inactive
+}

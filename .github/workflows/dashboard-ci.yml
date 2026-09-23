@@ -54,6 +54,8 @@ jobs:
           cache-dependency-path: apps/dashboard/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
+      # The example page lives in scripts/templates; prove `pnpm new:page` still works.
+      - run: pnpm check:templates
 
   build:
     name: Production build & bundle size
@@ -96,6 +98,8 @@ jobs:
       - run: cp .env.example .env
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm build
+      # Real first-load budget: the JS a browser downloads for "/" (needs Chromium).
+      - run: pnpm size:first-load
       - run: pnpm e2e
       - if: failure()
         uses: actions/upload-artifact@v4

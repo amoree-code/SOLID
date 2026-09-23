@@ -5,7 +5,6 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { type Env, validateEnv } from './config/env.schema.js';
 import { PrismaModule } from './database/prisma.module.js';
 import { HealthModule } from './health/health.module.js';
-import { ExampleResourceModule } from './modules/example-resource/example-resource.module.js';
 
 @Module({
   imports: [
@@ -22,7 +21,7 @@ import { ExampleResourceModule } from './modules/example-resource/example-resour
     }),
     PrismaModule,
     HealthModule,
-    ExampleResourceModule,
+    // `pnpm new:resource` modules are registered here.
   ],
   // Every route is rate-limited unless it opts out with @SkipThrottle().
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

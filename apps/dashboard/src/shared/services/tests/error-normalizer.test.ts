@@ -1,6 +1,7 @@
 import { AxiosError, AxiosHeaders, type AxiosResponse } from 'axios';
 import { describe, expect, it } from 'vitest';
 import { normalizeError } from '../error-normalizer';
+import { ApiConfigError, httpClient } from '../http-client';
 
 function httpError(status: number, data: unknown): AxiosError {
   const response = {
@@ -52,6 +53,19 @@ describe('normalizeError', () => {
   it('never leaks a raw non-HTTP error message to the UI', () => {
     expect(normalizeError(new TypeError('x is undefined')).message).toBe(
       'Something went wrong. Please try again.',
+    );
+  });
+
+  it('shows a missing-API-URL setup error as-is', () => {
+    const result = normalizeError(new ApiConfigError('VITE_API_BASE_URL is not set'));
+    expect(result).toMatchObject({ message: 'VITE_API_BASE_URL is not set', code: 'API_CONFIG' });
+  });
+});
+
+describe('httpClient without a base URL', () => {
+  it('refuses to send the request, with an ApiConfigError', async () => {
+    await expect(httpClient.get('/anything', { baseURL: '' })).rejects.toBeInstanceOf(
+      ApiConfigError,
     );
   });
 });

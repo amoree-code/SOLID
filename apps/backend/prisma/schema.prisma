@@ -10,19 +10,4 @@ datasource db {
   provider = "postgresql"
 }
 
-/// Reference resource — the pattern `pnpm new:resource` copies. Replace or
-/// delete it once the project has its own models.
-model ExampleResource {
-  id        String                @id @default(cuid())
-  name      String
-  status    ExampleResourceStatus @default(active)
-  createdAt DateTime              @default(now())
-  updatedAt DateTime              @updatedAt
-
-  @@map("example_resources")
-}
-
-enum ExampleResourceStatus {
-  active
-  inactive
-}
+// No models yet: `pnpm new:resource <singular> <plural>` appends one here.

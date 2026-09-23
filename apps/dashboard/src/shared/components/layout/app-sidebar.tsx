@@ -1,4 +1,4 @@
-import { IconInnerShadowTop, IconLayoutDashboard, IconListDetails } from '@tabler/icons-react';
+import { IconInnerShadowTop, IconLayoutDashboard } from '@tabler/icons-react';
 import { Link, useMatchRoute } from '@tanstack/react-router';
 import type { ComponentProps } from 'react';
 import { appConfig } from '@/app/config/app-config';
@@ -13,12 +13,9 @@ import {
   SidebarMenuItem,
 } from '@/shared/components/ui/sidebar';
 
-// Add one entry per page. Labels are plain strings until a project adds its
-// own translation system.
-const navItems = [
-  { to: '/', label: 'Home', icon: IconLayoutDashboard },
-  { to: '/example-page', label: 'Example page', icon: IconListDetails },
-] as const;
+// Add one entry per page (`pnpm new:page` prints the line to add). Labels are
+// plain strings until a project adds its own translation system.
+const navItems = [{ to: '/', label: 'Home', icon: IconLayoutDashboard }] as const;
 
 export function AppSidebar(props: ComponentProps<typeof Sidebar>) {
   const matchRoute = useMatchRoute();
