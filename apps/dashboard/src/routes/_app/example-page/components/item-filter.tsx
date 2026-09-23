@@ -1,7 +1,13 @@
 import { getRouteApi } from '@tanstack/react-router';
 import { useState } from 'react';
 import { Input } from '@/shared/components/ui/input';
-import { NativeSelect } from '@/shared/components/ui/native-select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select';
 import { useDebouncedCallback } from '@/shared/hooks/use-debounced-callback';
 import type { ItemSearch } from '../schemas/item-search.schema';
 
@@ -47,31 +53,43 @@ export function ItemFilter() {
         }}
         className="max-w-64"
       />
-      <NativeSelect
-        aria-label="Status"
+      <Select
         value={search.status}
-        onChange={(event) => patch({ status: event.target.value as ItemSearch['status'] })}
+        onValueChange={(value) => patch({ status: value as ItemSearch['status'] })}
       >
-        <option value="all">All statuses</option>
-        <option value="active">Active</option>
-        <option value="inactive">Inactive</option>
-      </NativeSelect>
-      <NativeSelect
-        aria-label="Sort by"
+        <SelectTrigger aria-label="Status">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All statuses</SelectItem>
+          <SelectItem value="active">Active</SelectItem>
+          <SelectItem value="inactive">Inactive</SelectItem>
+        </SelectContent>
+      </Select>
+      <Select
         value={search.sort}
-        onChange={(event) => patch({ sort: event.target.value as ItemSearch['sort'] })}
+        onValueChange={(value) => patch({ sort: value as ItemSearch['sort'] })}
       >
-        <option value="createdAt">Created date</option>
-        <option value="name">Name</option>
-      </NativeSelect>
-      <NativeSelect
-        aria-label="Order"
+        <SelectTrigger aria-label="Sort by">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="createdAt">Created date</SelectItem>
+          <SelectItem value="name">Name</SelectItem>
+        </SelectContent>
+      </Select>
+      <Select
         value={search.order}
-        onChange={(event) => patch({ order: event.target.value as ItemSearch['order'] })}
+        onValueChange={(value) => patch({ order: value as ItemSearch['order'] })}
       >
-        <option value="desc">Descending</option>
-        <option value="asc">Ascending</option>
-      </NativeSelect>
+        <SelectTrigger aria-label="Order">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="desc">Descending</SelectItem>
+          <SelectItem value="asc">Ascending</SelectItem>
+        </SelectContent>
+      </Select>
     </div>
   );
 }

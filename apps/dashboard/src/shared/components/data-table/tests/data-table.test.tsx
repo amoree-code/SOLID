@@ -44,11 +44,12 @@ describe('DataTable', () => {
       />,
     );
 
-    await userEvent.click(screen.getByText('Columns'));
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Show Name column' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Columns' }));
+    await userEvent.click(await screen.findByRole('menuitemcheckbox', { name: 'Name' }));
 
     expect(screen.queryByRole('columnheader', { name: 'Name' })).not.toBeInTheDocument();
-    expect(screen.getByRole('checkbox', { name: 'Show Name column' })).not.toBeChecked();
+    // The menu stays open, so the checkbox can be read back right away.
+    expect(screen.getByRole('menuitemcheckbox', { name: 'Name' })).not.toBeChecked();
   });
 });
 
@@ -74,7 +75,8 @@ describe('DataTablePagination', () => {
     );
 
     await userEvent.click(screen.getByRole('button', { name: 'Next' }));
-    await userEvent.selectOptions(screen.getByLabelText('Rows per page'), '50');
+    await userEvent.click(screen.getByRole('combobox', { name: 'Rows per page' }));
+    await userEvent.click(await screen.findByRole('option', { name: '50 / page' }));
 
     expect(onPageChange).toHaveBeenCalledWith(3);
     expect(onPageSizeChange).toHaveBeenCalledWith(50);

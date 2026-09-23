@@ -1,3 +1,4 @@
+import { Direction as DirectionPrimitive } from 'radix-ui';
 import {
   createContext,
   type ReactNode,
@@ -66,7 +67,13 @@ export function LocaleProvider({ children, initialLocale }: LocaleProviderProps)
 
   const value = useMemo(() => ({ locale, direction, setLocale }), [locale, direction, setLocale]);
 
-  return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;
+  return (
+    <LocaleContext.Provider value={value}>
+      <DirectionPrimitive.DirectionProvider dir={direction}>
+        {children}
+      </DirectionPrimitive.DirectionProvider>
+    </LocaleContext.Provider>
+  );
 }
 
 export function useLocale(): LocaleContextValue {

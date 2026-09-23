@@ -17,6 +17,11 @@ window.matchMedia = (query: string) =>
     dispatchEvent: () => false,
   }) as MediaQueryList;
 
+// jsdom lacks the pointer-capture and scrolling APIs Radix Select/DropdownMenu call.
+Element.prototype.hasPointerCapture = () => false;
+Element.prototype.releasePointerCapture = () => {};
+Element.prototype.scrollIntoView = () => {};
+
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();

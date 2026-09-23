@@ -1,5 +1,11 @@
 import { Button } from '@/shared/components/ui/button';
-import { NativeSelect } from '@/shared/components/ui/native-select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select';
 import type { DataTablePaginationState } from './data-table.types';
 
 type DataTablePaginationProps = DataTablePaginationState & {
@@ -25,17 +31,21 @@ export function DataTablePagination({
       </p>
       <div className="flex items-center gap-2">
         {onPageSizeChange ? (
-          <NativeSelect
-            aria-label="Rows per page"
-            value={pageSize}
-            onChange={(event) => onPageSizeChange(Number(event.target.value))}
+          <Select
+            value={String(pageSize)}
+            onValueChange={(value) => onPageSizeChange(Number(value))}
           >
-            {pageSizeOptions.map((option) => (
-              <option key={option} value={option}>
-                {option} / page
-              </option>
-            ))}
-          </NativeSelect>
+            <SelectTrigger size="sm" aria-label="Rows per page">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {pageSizeOptions.map((option) => (
+                <SelectItem key={option} value={String(option)}>
+                  {option} / page
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         ) : null}
         <Button
           variant="outline"

@@ -1,9 +1,8 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": ["src/routes/**/*.{ts,tsx}"],
-  "project": ["src/**/*.{ts,tsx}"],
+  "project": ["src/**/*.{ts,tsx,css}"],
   "ignore": ["src/shared/components/ui/**"],
-  "ignoreDependencies": ["tailwindcss"],
   "ignoreExportsUsedInFile": true,
   "vite": {
     "config": "vite.config.ts"

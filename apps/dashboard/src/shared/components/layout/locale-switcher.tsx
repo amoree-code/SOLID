@@ -1,4 +1,11 @@
 import { type Locale, SUPPORTED_LOCALES, useLocale } from '@/app/providers/locale-provider';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select';
 
 // Each locale's own name for itself — shown as-is, never translated.
 const LOCALE_LABELS: Record<Locale, string> = {
@@ -12,17 +19,17 @@ export function LocaleSwitcher() {
   const { locale, setLocale } = useLocale();
 
   return (
-    <select
-      aria-label="Language"
-      value={locale}
-      onChange={(event) => setLocale(event.target.value as Locale)}
-      className="h-9 rounded-md border border-input bg-background px-2 text-sm"
-    >
-      {SUPPORTED_LOCALES.map((code) => (
-        <option key={code} value={code}>
-          {LOCALE_LABELS[code]}
-        </option>
-      ))}
-    </select>
+    <Select value={locale} onValueChange={(value) => setLocale(value as Locale)}>
+      <SelectTrigger size="sm" aria-label="Language">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {SUPPORTED_LOCALES.map((code) => (
+          <SelectItem key={code} value={code}>
+            {LOCALE_LABELS[code]}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }

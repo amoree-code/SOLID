@@ -19,6 +19,6 @@ describe('ItemDetails', () => {
 
     expect(await screen.findByRole('heading', { name: 'Example item' })).toBeInTheDocument();
     expect(screen.getByLabelText(/name/i)).toHaveValue('Example item');
-    expect(screen.getByLabelText(/status/i)).toHaveValue('inactive');
+    expect(screen.getByRole('combobox', { name: /status/i })).toHaveTextContent('Inactive');
   });
 });

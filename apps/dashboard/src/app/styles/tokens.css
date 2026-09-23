@@ -33,7 +33,7 @@
   --chart-4: oklch(0.8822 0.0403 298.1792);
   --chart-5: oklch(0.5608 0.1348 42.0584);
   --radius: 1rem;
-  --font-sans: "Geist", ui-sans-serif, sans-serif;
+  --font-sans: "Geist Sans", ui-sans-serif, sans-serif;
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --font-mono: "Geist Mono", ui-monospace, monospace;
   --shadow-color: oklch(0 0 0);
@@ -89,7 +89,7 @@
   --chart-4: oklch(0.3074 0.0516 289.323);
   --chart-5: oklch(0.5608 0.1348 42.0584);
   --radius: 1rem;
-  --font-sans: "Geist", ui-sans-serif, sans-serif;
+  --font-sans: "Geist Sans", ui-sans-serif, sans-serif;
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --font-mono: "Geist Mono", ui-monospace, monospace;
   --shadow-color: oklch(0 0 0);

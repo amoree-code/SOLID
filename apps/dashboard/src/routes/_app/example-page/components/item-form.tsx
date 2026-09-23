@@ -1,9 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { FormField } from '@/shared/components/forms/form-field';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
-import { NativeSelect } from '@/shared/components/ui/native-select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select';
 import { getErrorMessage } from '@/shared/services/error-normalizer';
 import { type ItemFormValues, itemFormSchema } from '../schemas/item-form.schema';
 
@@ -23,6 +29,7 @@ export function ItemForm({
   onCancel,
 }: ItemFormProps) {
   const {
+    control,
     register,
     handleSubmit,
     formState: { errors },
@@ -37,10 +44,22 @@ export function ItemForm({
         <Input id="item-name" aria-invalid={Boolean(errors.name)} {...register('name')} />
       </FormField>
       <FormField label="Status" htmlFor="item-status" error={errors.status}>
-        <NativeSelect id="item-status" {...register('status')}>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </NativeSelect>
+        {/* Radix Select is not a native input, so React Hook Form drives it via Controller. */}
+        <Controller
+          control={control}
+          name="status"
+          render={({ field }) => (
+            <Select value={field.value} onValueChange={field.onChange}>
+              <SelectTrigger id="item-status" className="w-full" onBlur={field.onBlur}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        />
       </FormField>
       {submitError ? (
         <p role="alert" className="text-sm text-destructive">

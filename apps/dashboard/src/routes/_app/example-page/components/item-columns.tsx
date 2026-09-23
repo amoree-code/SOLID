@@ -1,7 +1,13 @@
 import { Link } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
+import { Badge } from '@/shared/components/ui/badge';
 import type { Item } from '../types';
 import { ItemActions } from './item-actions';
+
+const STATUS_LABELS: Record<Item['status'], string> = {
+  active: 'Active',
+  inactive: 'Inactive',
+};
 
 export const itemColumns: ColumnDef<Item, unknown>[] = [
   {
@@ -20,6 +26,11 @@ export const itemColumns: ColumnDef<Item, unknown>[] = [
   {
     accessorKey: 'status',
     header: 'Status',
+    cell: ({ row }) => (
+      <Badge variant={row.original.status === 'active' ? 'secondary' : 'outline'}>
+        {STATUS_LABELS[row.original.status]}
+      </Badge>
+    ),
   },
   {
     accessorKey: 'createdAt',
@@ -30,6 +41,10 @@ export const itemColumns: ColumnDef<Item, unknown>[] = [
     id: 'actions',
     header: '',
     enableHiding: false,
-    cell: ({ row }) => <ItemActions item={row.original} />,
+    cell: ({ row }) => (
+      <div className="text-end">
+        <ItemActions item={row.original} />
+      </div>
+    ),
   },
 ];

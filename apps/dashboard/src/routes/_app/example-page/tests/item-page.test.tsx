@@ -36,10 +36,8 @@ describe('example page', () => {
     stubList(100);
     const { router } = await renderApp('/example-page?page=3');
 
-    await userEvent.selectOptions(
-      await screen.findByRole('combobox', { name: 'Status' }),
-      'inactive',
-    );
+    await userEvent.click(await screen.findByRole('combobox', { name: 'Status' }));
+    await userEvent.click(await screen.findByRole('option', { name: 'Inactive' }));
 
     expect(router.state.location.search).toEqual({ status: 'inactive' });
   });

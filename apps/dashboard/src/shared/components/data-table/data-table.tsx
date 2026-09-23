@@ -2,6 +2,14 @@ import type { ColumnDef, Table as TanStackTable } from '@tanstack/react-table';
 import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import type { ReactNode } from 'react';
 import { EmptyState, LoadingState } from '@/shared/components/feedback/states';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/shared/components/ui/table';
 
 type DataTableProps<TData> = {
   columns: ColumnDef<TData, unknown>[];
@@ -41,7 +49,7 @@ export function DataTable<TData>({
       {isLoading ? (
         <LoadingState rows={5} />
       ) : data.length === 0 ? (
-        <div className="rounded-md border border-border">
+        <div className="rounded-md border">
           <EmptyState title={emptyMessage} />
         </div>
       ) : (
@@ -53,33 +61,33 @@ export function DataTable<TData>({
 
 function DataTableBody<TData>({ table }: { table: TanStackTable<TData> }) {
   return (
-    <div className="overflow-x-auto rounded-md border border-border">
-      <table className="w-full text-sm">
-        <thead className="border-b border-border bg-muted/50">
+    <div className="overflow-hidden rounded-md border">
+      <Table>
+        <TableHeader className="bg-muted/50">
           {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id}>
+            <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <th key={header.id} className="px-4 py-2 text-start font-medium">
+                <TableHead key={header.id} className="px-4">
                   {header.isPlaceholder
                     ? null
                     : flexRender(header.column.columnDef.header, header.getContext())}
-                </th>
+                </TableHead>
               ))}
-            </tr>
+            </TableRow>
           ))}
-        </thead>
-        <tbody>
+        </TableHeader>
+        <TableBody>
           {table.getRowModel().rows.map((row) => (
-            <tr key={row.id} className="border-b border-border last:border-0">
+            <TableRow key={row.id}>
               {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="px-4 py-2">
+                <TableCell key={cell.id} className="px-4">
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
+                </TableCell>
               ))}
-            </tr>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

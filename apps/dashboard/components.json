@@ -14,5 +14,6 @@
     "ui": "@/shared/components/ui",
     "utils": "@/shared/utils/cn",
     "lib": "@/shared"
-  }
+  },
+  "rtl": true
 }

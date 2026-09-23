@@ -55,13 +55,14 @@ test.describe('example page', () => {
     await page.goto('/example-page');
     await expect(page.getByRole('link', { name: 'Item 1', exact: true })).toBeVisible();
 
-    await page.getByLabel('Status', { exact: true }).selectOption('inactive');
+    await page.getByRole('combobox', { name: 'Status' }).click();
+    await page.getByRole('option', { name: 'Inactive' }).click();
     await expect(page).toHaveURL(/status=inactive/);
     await expect(page.getByRole('link', { name: 'Item 2', exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Item 1', exact: true })).toBeHidden();
 
     await page.reload();
-    await expect(page.getByLabel('Status', { exact: true })).toHaveValue('inactive');
+    await expect(page.getByRole('combobox', { name: 'Status' })).toHaveText('Inactive');
     expect(requests.at(-1)?.searchParams.get('status')).toBe('inactive');
   });
 
