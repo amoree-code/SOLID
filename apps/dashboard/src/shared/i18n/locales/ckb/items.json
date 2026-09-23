@@ -1,0 +1,19 @@
+{
+  "title": "بابەتەکان",
+  "new": "بابەتی نوێ",
+  "search.placeholder": "گەڕان…",
+  "filter.status": "دۆخ",
+  "filter.allStatuses": "هەموو دۆخەکان",
+  "filter.sortBy": "ڕیزکردن بەپێی",
+  "sort.createdAt": "بەرواری دروستکردن",
+  "sort.name": "ناو",
+  "status.active": "چالاک",
+  "status.inactive": "ناچالاک",
+  "column.name": "ناو",
+  "column.status": "دۆخ",
+  "column.createdAt": "بەرواری دروستکردن",
+  "empty": "هیچ بابەتێک لەگەڵ فلتەرەکانت ناگونجێت.",
+  "form.name": "ناو",
+  "form.status": "دۆخ",
+  "back": "گەڕانەوە بۆ بابەتەکان"
+}

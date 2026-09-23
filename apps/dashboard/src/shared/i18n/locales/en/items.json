@@ -1,0 +1,19 @@
+{
+  "title": "Items",
+  "new": "New item",
+  "search.placeholder": "Search…",
+  "filter.status": "Status",
+  "filter.allStatuses": "All statuses",
+  "filter.sortBy": "Sort by",
+  "sort.createdAt": "Created date",
+  "sort.name": "Name",
+  "status.active": "Active",
+  "status.inactive": "Inactive",
+  "column.name": "Name",
+  "column.status": "Status",
+  "column.createdAt": "Created",
+  "empty": "No items match your filters.",
+  "form.name": "Name",
+  "form.status": "Status",
+  "back": "Back to items"
+}

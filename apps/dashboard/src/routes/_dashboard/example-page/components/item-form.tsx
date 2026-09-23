@@ -1,8 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select';
+import { useTranslation } from '@/shared/i18n/use-translation';
 import { getErrorMessage } from '@/shared/services/error-normalizer';
 import { type ItemFormValues, itemFormSchema } from '../schemas/item-form.schema';
 
@@ -21,7 +29,10 @@ export function ItemForm({
   onSubmit,
   onCancel,
 }: ItemFormProps) {
+  const { t } = useTranslation('items');
+  const { t: tCommon } = useTranslation('common');
   const {
+    control,
     register,
     handleSubmit,
     formState: { errors },
@@ -33,20 +44,27 @@ export function ItemForm({
   return (
     <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)} noValidate>
       <div className="flex flex-col gap-2">
-        <Label htmlFor="item-name">Name</Label>
+        <Label htmlFor="item-name">{t('form.name')}</Label>
         <Input id="item-name" {...register('name')} />
         {errors.name ? <p className="text-xs text-destructive">{errors.name.message}</p> : null}
       </div>
       <div className="flex flex-col gap-2">
-        <Label htmlFor="item-status">Status</Label>
-        <select
-          id="item-status"
-          className="h-9 rounded-md border border-input bg-background px-2 text-sm"
-          {...register('status')}
-        >
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
+        <Label htmlFor="item-status">{t('form.status')}</Label>
+        <Controller
+          control={control}
+          name="status"
+          render={({ field }) => (
+            <Select value={field.value} onValueChange={field.onChange}>
+              <SelectTrigger id="item-status" className="w-full" onBlur={field.onBlur}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">{t('status.active')}</SelectItem>
+                <SelectItem value="inactive">{t('status.inactive')}</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        />
       </div>
       {submitError ? (
         <p className="text-xs text-destructive">{getErrorMessage(submitError)}</p>
@@ -54,11 +72,11 @@ export function ItemForm({
       <div className="flex justify-end gap-2">
         {onCancel ? (
           <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
+            {tCommon('actions.cancel')}
           </Button>
         ) : null}
         <Button type="submit" disabled={isSubmitting}>
-          Save
+          {tCommon('actions.save')}
         </Button>
       </div>
     </form>

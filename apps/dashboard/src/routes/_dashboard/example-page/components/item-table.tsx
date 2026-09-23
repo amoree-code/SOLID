@@ -5,8 +5,9 @@ import { DataTable } from '@/shared/components/data-table/data-table';
 import { DataTableColumnToggle } from '@/shared/components/data-table/data-table-column-toggle';
 import { DataTableEmpty } from '@/shared/components/data-table/data-table-empty';
 import { DataTablePagination } from '@/shared/components/data-table/data-table-pagination';
+import { useTranslation } from '@/shared/i18n/use-translation';
 import type { Item, ItemListResponse } from '../types';
-import { itemColumns } from './item-columns';
+import { useItemColumns } from './item-columns';
 
 const routeApi = getRouteApi('/_dashboard/example-page/');
 
@@ -17,6 +18,8 @@ type ItemTableProps = {
 export function ItemTable({ data }: ItemTableProps) {
   const navigate = routeApi.useNavigate();
   const [table, setTable] = useState<Table<Item> | null>(null);
+  const columns = useItemColumns();
+  const { t } = useTranslation('items');
 
   return (
     <div className="flex flex-col gap-3">
@@ -24,9 +27,9 @@ export function ItemTable({ data }: ItemTableProps) {
         {table ? <DataTableColumnToggle table={table} /> : null}
       </div>
       <DataTable
-        columns={itemColumns}
+        columns={columns}
         data={data.items}
-        empty={<DataTableEmpty>No items match your filters.</DataTableEmpty>}
+        empty={<DataTableEmpty>{t('empty')}</DataTableEmpty>}
         onTableReady={setTable}
       />
       <DataTablePagination

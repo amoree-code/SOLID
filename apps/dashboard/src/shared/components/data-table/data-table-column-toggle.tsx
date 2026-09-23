@@ -1,30 +1,45 @@
 import type { Table } from '@tanstack/react-table';
+import { Button } from '@/shared/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/shared/components/ui/dropdown-menu';
+import { useTranslation } from '@/shared/i18n/use-translation';
 
 type DataTableColumnToggleProps<TData> = {
   table: Table<TData>;
 };
 
 export function DataTableColumnToggle<TData>({ table }: DataTableColumnToggleProps<TData>) {
+  const { t } = useTranslation('common');
+
   return (
-    <details className="relative">
-      <summary className="cursor-pointer list-none rounded-md border border-input px-3 py-1.5 text-sm">
-        Columns
-      </summary>
-      <div className="absolute end-0 z-10 mt-1 flex flex-col gap-1 rounded-md border border-border bg-card p-2 shadow-md">
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm">
+          {t('table.columns')}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
         {table
           .getAllLeafColumns()
           .filter((column) => column.getCanHide())
-          .map((column) => (
-            <label key={column.id} className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
+          .map((column) => {
+            const { header } = column.columnDef;
+            return (
+              <DropdownMenuCheckboxItem
+                key={column.id}
                 checked={column.getIsVisible()}
-                onChange={column.getToggleVisibilityHandler()}
-              />
-              {column.id}
-            </label>
-          ))}
-      </div>
-    </details>
+                onCheckedChange={(value) => column.toggleVisibility(value)}
+                onSelect={(event) => event.preventDefault()}
+              >
+                {typeof header === 'string' && header ? header : column.id}
+              </DropdownMenuCheckboxItem>
+            );
+          })}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
