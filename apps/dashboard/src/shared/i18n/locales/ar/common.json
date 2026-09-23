@@ -9,5 +9,14 @@
   "state.loading": "جارٍ التحميل…",
   "state.empty": "لا يوجد شيء لعرضه بعد.",
   "state.error": "حدث خطأ ما.",
-  "state.forbidden": "ليس لديك صلاحية لعرض هذه الصفحة."
+  "state.forbidden": "ليس لديك صلاحية لعرض هذه الصفحة.",
+  "table.columns": "الأعمدة",
+  "table.noResults": "لا توجد نتائج.",
+  "pagination.pageOf": "صفحة {page} من {count}",
+  "pagination.previous": "السابق",
+  "pagination.next": "التالي",
+  "theme.light": "فاتح",
+  "theme.dark": "داكن",
+  "theme.toggle": "تبديل المظهر",
+  "language.label": "اللغة"
 }

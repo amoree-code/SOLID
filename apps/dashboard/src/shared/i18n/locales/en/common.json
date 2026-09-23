@@ -9,5 +9,14 @@
   "state.loading": "Loading…",
   "state.empty": "Nothing to show yet.",
   "state.error": "Something went wrong.",
-  "state.forbidden": "You don't have permission to view this page."
+  "state.forbidden": "You don't have permission to view this page.",
+  "table.columns": "Columns",
+  "table.noResults": "No results.",
+  "pagination.pageOf": "Page {page} of {count}",
+  "pagination.previous": "Previous",
+  "pagination.next": "Next",
+  "theme.light": "Light",
+  "theme.dark": "Dark",
+  "theme.toggle": "Toggle theme",
+  "language.label": "Language"
 }
