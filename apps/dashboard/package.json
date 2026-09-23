@@ -12,9 +12,9 @@
     "lint": "biome check --write .",
     "lint:ci": "biome check .",
     "format": "biome format --write .",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
+    "test": "tsr generate && vitest run",
+    "test:watch": "tsr generate && vitest",
+    "test:coverage": "tsr generate && vitest run --coverage",
     "knip": "knip",
     "size": "size-limit",
     "e2e": "playwright test",
@@ -37,7 +37,6 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-hook-form": "^7.88.0",
-    "recharts": "3.8.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {

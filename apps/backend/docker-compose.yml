@@ -30,10 +30,6 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/solid_backend?schema=public
       CORS_ORIGIN: http://localhost:5173
-      JWT_ACCESS_SECRET: dev-only-access-secret-change-me
-      JWT_ACCESS_EXPIRES_IN: 15m
-      JWT_REFRESH_SECRET: dev-only-refresh-secret-change-me
-      JWT_REFRESH_EXPIRES_IN: 7d
     ports:
       - '3000:3000'
 

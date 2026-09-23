@@ -1,123 +1,149 @@
-# SOLID Backend
+# Backend Template
 
-A NestJS API foundation built the way NestJS already wants to be built — DI-first, modules
-owning one responsibility — paired with a matching dashboard frontend template in the same
-repo. If you use both, the contract between them needs zero adaptation layer.
+A minimal, domain-neutral NestJS API: PostgreSQL through Prisma, Zod validation at every
+input boundary, one error shape for every failure, health and readiness probes, Swagger,
+and a generator for new resources. It does not assume any particular client, including the
+dashboard in this repository.
+
+The core has **no** authentication, sessions, users, roles or permissions. Those belong to
+a real project and are listed under [Optional starters](#optional-starters).
 
 ## Stack
 
-| Layer | Choice |
+| Concern | Choice |
 |---|---|
-| Framework | NestJS 12 |
+| Framework | NestJS 12 (ESM) |
 | Database | PostgreSQL |
-| ORM | Prisma 7 (driver adapter: `@prisma/adapter-pg`) |
-| Validation | Zod, via a small custom `ZodValidationPipe` — no wrapper library |
-| Auth | `@nestjs/jwt` + `@nestjs/passport` — access token (body) + refresh token (httpOnly cookie) |
-| Permissions | A custom `PermissionsGuard` reading `@RequirePermission('resource.action')` |
-| API docs | `@nestjs/swagger`, served at `/docs` |
-| Lint/format | Biome (matches the dashboard app; NestJS's default oxlint/prettier scaffold was removed) |
-| Tests | Vitest (unit, colocated `*.spec.ts`) + Vitest e2e (`test/*.e2e-spec.ts`, via `supertest`) |
+| ORM | Prisma 7 (`@prisma/adapter-pg` driver adapter) |
+| Validation | Zod, via a small `ZodValidationPipe` bound per parameter |
+| Config | `@nestjs/config`, validated with Zod at boot (`src/config/env.schema.ts`) |
+| API docs | `@nestjs/swagger` at `/docs` |
+| Quality | Biome, Vitest, Supertest |
+| Runtime | Docker (multi-stage, non-root), `docker-compose.yml` for local Postgres |
 
 ## Getting started
 
 ```bash
 pnpm install
-cp .env.example .env          # then edit DATABASE_URL, JWT secrets
-pnpm db:migrate                # creates the schema (needs a reachable Postgres)
-pnpm db:seed                   # creates demo@example.com / password123
+cp .env.example .env
+docker compose up -d postgres   # or point DATABASE_URL at any Postgres
+pnpm db:migrate
+pnpm db:seed                    # two example rows (skipped if the table has data)
 pnpm dev
 ```
 
-Swagger UI: `http://localhost:3000/docs`. Health check (no auth): `GET /health`.
+| Variable | Required | Meaning |
+|---|---|---|
+| `DATABASE_URL` | yes | PostgreSQL connection string |
+| `PORT` | no | Defaults to `3000` |
+| `CORS_ORIGIN` | no | Comma-separated allowed browser origins. Empty disables CORS |
 
-## Why this pairs with the dashboard template with zero mapping
+Swagger UI: `http://localhost:3000/docs`.
 
-- `AuthUser` (`src/auth/types/auth-user.type.ts`) is field-for-field identical to the
-  dashboard's `AuthUser` (`id`, `name`, `email`, `roles`, `permissions`).
-- A permission is a plain `string` here too (`RequirePermission('items.read')`) — same
-  reasoning as the dashboard's `Permission = string`: neither side hardcodes an assumption
-  about the other's naming convention. The `items.*` names used by the reference `Items`
-  resource match `permission-map.ts`'s example constants exactly, but nothing enforces that;
-  they're just consistent by choice.
-- `Item` (`src/items/schemas/item.schema.ts`) matches the dashboard's `Item` schema exactly
-  (`id`, `name`, `status: 'active' | 'inactive'`, `createdAt`), and the list response shape
-  (`{ items, total, page, pageSize }`) matches one of the shapes
-  `response-envelope.ts` already recognizes on the frontend.
-- Every error response is normalized to `{ message, code, errors }`
-  (`src/common/filters/http-exception.filter.ts`) — the exact shape the dashboard's
-  `error-normalizer.ts` already expects.
+## Commands
 
-## Auth flow
+| Command | What it does |
+|---|---|
+| `pnpm dev` | Watch mode |
+| `pnpm build` / `pnpm start:prod` | Compile to `dist/` / run it |
+| `pnpm typecheck` | `tsc --noEmit` |
+| `pnpm lint` / `pnpm lint:ci` | Biome with / without autofix |
+| `pnpm test` | Unit and HTTP tests (no database needed) |
+| `pnpm test:e2e` | End-to-end against the real database in `DATABASE_URL` |
+| `pnpm db:generate` | Generate the Prisma client (needed before typecheck/build) |
+| `pnpm db:migrate` / `pnpm db:deploy` | Create+apply migrations (dev) / apply them (deploy) |
+| `pnpm db:seed` / `pnpm db:studio` | Seed example rows / browse data |
+| `pnpm new:resource <singular> <plural>` | Scaffold a resource from `example-resource` |
+| `pnpm verify` | typecheck, lint, test, build |
+
+## Structure
 
 ```text
-POST /auth/login    { email, password }  → { accessToken, refreshToken: null } + Set-Cookie
-POST /auth/verify    { code }             → same shape (demo placeholder, see below)
-POST /auth/refresh   (cookie only)        → same shape, rotates both tokens
-POST /auth/logout                          → clears the cookie
-GET  /auth/me        (Bearer token)       → AuthUser
+src/
+├── main.ts                    # bootstrap: CORS, global filter, Swagger, shutdown hooks
+├── app.module.ts
+├── config/                    # env schema, validated at boot
+├── common/
+│   ├── filters/               # HttpExceptionFilter: one error shape for everything
+│   └── pipes/                 # ZodValidationPipe
+├── database/                  # PrismaModule (global), PrismaService
+├── health/                    # GET /health (liveness), GET /health/ready (database)
+├── generated/prisma/          # Prisma client output (gitignored)
+└── modules/
+    └── example-resource/      # the reference resource: copy it, then replace or delete it
+        ├── example-resource.controller.ts   # HTTP + validation, nothing else
+        ├── example-resource.service.ts      # rules (e.g. not found → 404)
+        ├── example-resource.repository.ts   # the only Prisma access; row → API shape
+        ├── example-resource.module.ts
+        ├── example-resource.controller.spec.ts
+        ├── schemas/                         # Zod: entity, input, list query
+        └── types/
 ```
 
-The refresh token never appears in a JSON body — only in an `httpOnly`, `sameSite: strict`
-cookie scoped to `/auth`. The access token still travels in the body and is the dashboard's
-responsibility to store (see the dashboard README's "known trade-off" note on this).
+Add `common/guards/`, `common/interceptors/` or `common/decorators/` when the first real one
+exists. The template doesn't ship empty abstractions.
 
-**`/auth/verify` is a placeholder** (`AuthService.verify`, hardcoded 6-digit code
-`"123456"` for the seeded demo user) — it exists to demonstrate the request/response
-contract the dashboard's verify page expects, not as real 2FA/email verification. Replace
-it with actual OTP/email/SMS delivery before using this for anything real.
+## API conventions
+
+**Errors:** every error response is `{ message, code, errors }`:
+
+```json
+{ "message": "Validation failed", "code": "VALIDATION_ERROR", "errors": { "name": ["…"] } }
+```
+
+Validation failures carry per-field `errors`. Unexpected exceptions are logged and returned
+as a generic `500` with `code: "INTERNAL_ERROR"`. Their internals never reach the client.
+
+**Lists** return `{ items, total, page, pageSize }` and accept
+`?page&pageSize&search&status&sort&order`. A malformed query value falls back to its
+default instead of failing the request.
+
+**Health:** `GET /health` never touches dependencies (liveness). `GET /health/ready`
+returns `503` when the database does not answer (readiness).
 
 ## Adding a resource
 
 ```bash
-pnpm new:resource product products
+pnpm new:resource product products     # → src/modules/product/, GET /products
 ```
 
-Copies `src/items/` (repository → service → controller → module, plus `schemas/`) to
-`src/products/`, renaming every identifier — including the `@Controller` path, the
-`@RequirePermission` strings, and the Prisma client accessor (`this.prisma.item` →
-`this.prisma.product`) — and appends a matching `model`/`enum` to `prisma/schema.prisma`,
-copied from `model Item`/`enum ItemStatus`. The one thing it protects on purpose: the
-generic `{ items, total, page, pageSize }` field name in the paginated response type stays
-`items` for every resource — that's the wire-format contract with the dashboard's
-`response-envelope.ts`, not something to rename per entity.
+The generator copies `example-resource` (including its spec), renames every identifier, the
+route and the table, and appends a matching model and enum to `prisma/schema.prisma`. It
+generates backend code only, with no frontend files, auth, or permissions. It prints the
+remaining manual steps: register the module in `app.module.ts`, run `pnpm db:generate` and
+`pnpm db:migrate`, then adjust the schemas.
 
-It prints the same kind of "required next step" list as the dashboard's `pnpm new:page`:
-registering the new module in `app.module.ts` and running `pnpm db:migrate` both fail loudly
-(a missing import, a table that doesn't exist) rather than silently, so there's no way to
-forget them and have the app "work" incorrectly.
-
-Each layer has one reason to change:
-
-```text
-Controller   → HTTP surface: routes, permission requirements, request validation
-Service      → business logic, orchestrates repositories
-Repository   → the only place that talks to Prisma for that resource
-Schemas      → Zod: request shape validation + the entity's own response shape
-```
-
-`ItemsService` depends on `ItemsRepository`'s methods, never on `PrismaService` directly —
-swap the storage engine later without touching the service or controller.
+The repository class exists because it is the one place that maps database rows to the
+API shape. There is no repository interface or factory layer. Add one only when a second
+implementation actually exists.
 
 ## Testing
 
-Unit tests are colocated (`*.spec.ts` next to the file they test) — standard Nest/Vitest
-convention. `test/*.e2e-spec.ts` boots the real Nest application (via `@nestjs/testing`) and
-hits it with `supertest`; the two included here (`/health` and an unauthenticated `/items`
-rejection) don't require a reachable database. Add a Postgres instance (`docker run -p
-5432:5432 -e POSTGRES_PASSWORD=postgres postgres:16`, or update `DATABASE_URL`) before
-writing e2e tests that actually query data.
+| Layer | Where | Needs a database |
+|---|---|---|
+| Unit | `src/**/*.spec.ts`, next to the code | no |
+| HTTP (Supertest) | `*.controller.spec.ts`, with an in-memory repository | no |
+| End-to-end | `test/*.e2e-spec.ts`, the full `AppModule` | yes (migrated) |
 
-## Commands
+## Docker
 
-| Command | Purpose |
-|---|---|
-| `pnpm dev` | Start with hot reload |
-| `pnpm build` | Compile to `dist/` |
-| `pnpm new:resource <singular> <plural>` | Scaffold a new resource from `items/` (see "Adding a resource") |
-| `pnpm typecheck` / `pnpm lint` / `pnpm lint:ci` | As in the dashboard app |
-| `pnpm test` / `pnpm test:e2e` | Unit / e2e (Vitest) |
-| `pnpm db:migrate` | Apply Prisma migrations (dev) |
-| `pnpm db:generate` | Regenerate the Prisma client after a schema change |
-| `pnpm db:seed` | Seed the demo user + reference items |
-| `pnpm db:studio` | Prisma Studio (visual DB browser) |
-| `pnpm verify` | typecheck → lint → test → build |
+```bash
+docker build -t backend .
+docker compose --profile full up     # Postgres + the API
+```
+
+## CI
+
+`.github/workflows/backend-ci.yml` at the repository root runs only when `apps/backend/**`
+changes: typecheck, lint, unit tests, migrations against a throwaway Postgres service, e2e,
+build. It installs only this app's own lockfile.
+
+## Optional starters
+
+Not implemented in the core, on purpose. Add them per project:
+
+- **Authentication:** a `User` model, a hashing library, `@nestjs/jwt`, and a global guard
+  with a `@Public()` escape hatch for `/health`.
+- **Authorization:** a guard plus a metadata decorator on handlers, fed by your identity
+  model.
+- **Email verification / password reset:** on top of the authentication starter.

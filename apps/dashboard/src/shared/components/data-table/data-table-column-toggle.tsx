@@ -1,4 +1,10 @@
-import type { Table } from '@tanstack/react-table';
+import type { Column, Table } from '@tanstack/react-table';
+
+// A string header is the user-facing name; fall back to the id for custom headers.
+function columnLabel<TData>(column: Column<TData, unknown>): string {
+  const { header } = column.columnDef;
+  return typeof header === 'string' && header ? header : column.id;
+}
 
 type DataTableColumnToggleProps<TData> = {
   table: Table<TData>;
@@ -18,10 +24,11 @@ export function DataTableColumnToggle<TData>({ table }: DataTableColumnTogglePro
             <label key={column.id} className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
+                aria-label={`Show ${columnLabel(column)} column`}
                 checked={column.getIsVisible()}
                 onChange={column.getToggleVisibilityHandler()}
               />
-              {column.id}
+              {columnLabel(column)}
             </label>
           ))}
       </div>

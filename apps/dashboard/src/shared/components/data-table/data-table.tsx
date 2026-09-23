@@ -1,42 +1,57 @@
 import type { ColumnDef, Table as TanStackTable } from '@tanstack/react-table';
 import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { type ReactNode, useEffect } from 'react';
-import { DataTableEmpty } from './data-table-empty';
-import { DataTableLoading } from './data-table-loading';
+import type { ReactNode } from 'react';
+import { EmptyState, LoadingState } from '@/shared/components/feedback/states';
 
 type DataTableProps<TData> = {
   columns: ColumnDef<TData, unknown>[];
   data: TData[];
   isLoading?: boolean;
-  empty?: ReactNode;
-  onTableReady?: (table: TanStackTable<TData>) => void;
+  emptyMessage?: string;
+  getRowId?: (row: TData) => string;
+  /** Rendered above the table with the live table instance, e.g. a column toggle. */
+  toolbar?: (table: TanStackTable<TData>) => ReactNode;
 };
 
+/**
+ * Rendering only. Paging, sorting and filtering are server-side and owned by
+ * the page (via URL search params) — this never slices or sorts `data` itself.
+ */
 export function DataTable<TData>({
   columns,
   data,
   isLoading = false,
-  empty = <DataTableEmpty>No results.</DataTableEmpty>,
-  onTableReady,
+  emptyMessage = 'No results.',
+  getRowId,
+  toolbar,
 }: DataTableProps<TData>) {
   const table = useReactTable({
     data,
     columns,
+    getRowId,
     getCoreRowModel: getCoreRowModel(),
+    manualPagination: true,
+    manualSorting: true,
+    manualFiltering: true,
   });
 
-  useEffect(() => {
-    onTableReady?.(table);
-  });
+  return (
+    <div className="flex flex-col gap-3">
+      {toolbar ? <div className="flex justify-end">{toolbar(table)}</div> : null}
+      {isLoading ? (
+        <LoadingState rows={5} />
+      ) : data.length === 0 ? (
+        <div className="rounded-md border border-border">
+          <EmptyState title={emptyMessage} />
+        </div>
+      ) : (
+        <DataTableBody table={table} />
+      )}
+    </div>
+  );
+}
 
-  if (isLoading) {
-    return <DataTableLoading />;
-  }
-
-  if (data.length === 0) {
-    return <>{empty}</>;
-  }
-
+function DataTableBody<TData>({ table }: { table: TanStackTable<TData> }) {
   return (
     <div className="overflow-x-auto rounded-md border border-border">
       <table className="w-full text-sm">

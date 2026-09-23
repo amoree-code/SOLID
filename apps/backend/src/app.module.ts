@@ -1,18 +1,16 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AppController } from './app.controller.js';
-import { AuthModule } from './auth/auth.module.js';
 import { validateEnv } from './config/env.schema.js';
-import { ItemsModule } from './items/items.module.js';
-import { PrismaModule } from './prisma/prisma.module.js';
+import { PrismaModule } from './database/prisma.module.js';
+import { HealthModule } from './health/health.module.js';
+import { ExampleResourceModule } from './modules/example-resource/example-resource.module.js';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }),
     PrismaModule,
-    AuthModule,
-    ItemsModule,
+    HealthModule,
+    ExampleResourceModule,
   ],
-  controllers: [AppController],
 })
 export class AppModule {}

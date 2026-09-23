@@ -1,29 +1,29 @@
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module.js';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter.js';
+import type { Env } from './config/env.schema.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const config = app.get<ConfigService<Env, true>>(ConfigService);
 
-  app.use(cookieParser());
-  app.enableCors({
-    origin: process.env.CORS_ORIGIN,
-    credentials: true,
-  });
+  const corsOrigins = config.get('CORS_ORIGIN', { infer: true });
+  if (corsOrigins.length > 0) {
+    app.enableCors({ origin: corsOrigins });
+  }
   app.useGlobalFilters(new HttpExceptionFilter());
+  app.enableShutdownHooks();
 
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('SOLID Backend API')
-    .setDescription('Reference API for the SOLID dashboard template.')
+    .setTitle('API')
+    .setDescription('NestJS API template.')
     .setVersion('0.0.1')
-    .addBearerAuth()
     .build();
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('docs', app, document);
+  SwaggerModule.setup('docs', app, SwaggerModule.createDocument(app, swaggerConfig));
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(config.get('PORT', { infer: true }));
 }
 
 await bootstrap();

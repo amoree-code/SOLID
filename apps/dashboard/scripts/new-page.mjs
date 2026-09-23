@@ -8,9 +8,10 @@
  * Usage: pnpm new:page <singular-kebab> <plural-kebab>
  * Example: pnpm new:page user users
  *
- * Deliberately does NOT touch shared/ files (permission map, sidebar nav,
- * locale files) — those are small, reviewable edits the generator prints as
- * next steps instead of guessing how to splice them into existing code.
+ * The page's tests live in its own `tests/` folder, so they are copied with it.
+ * Deliberately does NOT touch shared/ files (the sidebar nav) — that is a small,
+ * reviewable edit the generator prints as a next step instead of guessing how
+ * to splice it into existing code.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -72,26 +73,14 @@ const camelSingular = toCamelCase(singular);
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
-// The route folder and its tests live in separate trees (see README > Testing):
-// unit tests are centralized under e2e/unit/, mirroring src/, not colocated.
-const copies = [
-  {
-    src: path.join(repoRoot, 'src/routes/_dashboard/example-page'),
-    dest: path.join(repoRoot, 'src/routes/_dashboard', plural),
-  },
-  {
-    src: path.join(repoRoot, 'e2e/unit/routes/_dashboard/example-page'),
-    dest: path.join(repoRoot, 'e2e/unit/routes/_dashboard', plural),
-  },
-];
+const src = path.join(repoRoot, 'src/routes/_app/example-page');
+const dest = path.join(repoRoot, 'src/routes/_app', plural);
 
-for (const { src, dest } of copies) {
-  if (!fs.existsSync(src)) {
-    fail(`Template not found: ${path.relative(repoRoot, src)}`);
-  }
-  if (fs.existsSync(dest)) {
-    fail(`Target already exists: ${path.relative(repoRoot, dest)}`);
-  }
+if (!fs.existsSync(src)) {
+  fail(`Template not found: ${path.relative(repoRoot, src)}`);
+}
+if (fs.existsSync(dest)) {
+  fail(`Target already exists: ${path.relative(repoRoot, dest)}`);
 }
 
 // Order matters: capitalized "Item" first (handles PascalCase compounds like
@@ -104,7 +93,6 @@ function transformContent(content) {
   return content
     .replaceAll('Item', PascalSingular)
     .replaceAll('example-page', plural)
-    .replaceAll('permissions.items', `permissions.${plural}`)
     .replace(/\/items(?=[/'"`])/g, `/${plural}`)
     .replace(/\['items'\]/g, `['${plural}']`)
     .replace(/(?<=-)items\b/g, plural)
@@ -134,25 +122,16 @@ function copyRecursive(srcPath, destPath) {
   fs.writeFileSync(destPath, transformContent(content));
 }
 
-for (const { src, dest } of copies) {
-  copyRecursive(src, dest);
-}
+copyRecursive(src, dest);
 
-const relativeTarget = path.relative(repoRoot, copies[0].dest);
-const relativeTestTarget = path.relative(repoRoot, copies[1].dest);
+const relativeTarget = path.relative(repoRoot, dest);
 
 console.log(`Created ${relativeTarget}/`);
-console.log(`Created ${relativeTestTarget}/`);
 console.log('');
 console.log('Next steps (not automated — small, reviewable edits):');
-console.log('  1. REQUIRED to compile: run `pnpm dev` (or `pnpm build`) once so the router');
-console.log(`     plugin picks up the new route files and regenerates routeTree.gen.ts`);
-console.log(
-  `  2. REQUIRED to compile: add a "${plural}" group to src/shared/permissions/permission-map.ts`,
-);
-console.log('  3. Add a sidebar link in src/shared/components/layout/dashboard-sidebar.tsx');
-console.log(`  4. Add nav.${camelSingular}... keys to src/shared/i18n/locales/*/navigation.json`);
-console.log(`  5. Point ${relativeTarget}/services/*.ts at the real backend contract`);
-console.log(`  6. Update ${relativeTarget}/schemas/${singular}.schema.ts to match real fields`);
-console.log(`  7. Review the copied tests in ${relativeTestTarget}/ — assertions still describe`);
-console.log('     the old fields');
+console.log('  1. Run `pnpm dev` (or `pnpm typecheck`) once so routeTree.gen.ts picks up the');
+console.log('     new route files — the new page will not compile until then');
+console.log('  2. Add a sidebar link in src/shared/components/layout/app-sidebar.tsx');
+console.log(`  3. Point ${relativeTarget}/services/*.ts at the real API endpoints`);
+console.log(`  4. Update ${relativeTarget}/schemas/${singular}.schema.ts to match the real fields`);
+console.log(`  5. Review ${relativeTarget}/tests/ — assertions still describe the old fields`);

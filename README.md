@@ -1,22 +1,44 @@
 # SOLID
 
-A personal collection of ready-to-clone project foundations, each independent and each built
-around SOLID principles for its own domain. Every app under `apps/` is fully standalone — its
-own `package.json`, its own lockfile, its own CI workflow, its own Docker build. Nothing here
-links one app to another; there is no shared workspace, no shared lockfile, no shared tooling.
+A collection of **independent** project templates. Each app under `apps/` stands alone with
+its own `package.json`, lockfile, README, environment configuration, tests, Docker build and
+CI workflow. **No app depends on another app.** Copy only the one you need.
 
 ```text
 apps/
-├── dashboard/   Frontend template — TanStack Router/Query/Table, i18n+RTL, permissions
-├── backend/     NestJS + SOLID — DI-first API foundation, paired 1:1 with dashboard's contract
-└── portfolio/   Next.js — personal site foundation, content/presentation separated
+├── dashboard/   React dashboard: TanStack Router/Query/Table, shadcn/ui, typed URL state
+├── backend/     NestJS API: Prisma + PostgreSQL, Zod validation, health probes, generator
+└── portfolio/   Next.js personal site: SEO-ready, responsive, content-driven
 ```
 
-Each app has its own README with its own architecture notes — start there once you're inside one.
+The dashboard and backend are both domain-neutral cores. Neither includes authentication,
+sessions or permissions. The dashboard calls whatever API you configure, not necessarily
+this repository's backend. The backend serves any client, not necessarily this dashboard.
+They share no code, types or contracts.
 
-## Using this repo
+## Copy one app
 
-Every app is used the same way, on its own, from inside its own folder:
+Each command pulls a single app with nothing else from this repository:
+
+```bash
+# Dashboard only
+npx degit amoree-code/SOLID/apps/dashboard my-dashboard
+cd my-dashboard && pnpm install && cp .env.example .env && pnpm dev
+```
+
+```bash
+# Backend only
+npx degit amoree-code/SOLID/apps/backend my-backend
+cd my-backend && pnpm install && cp .env.example .env && pnpm db:migrate && pnpm dev
+```
+
+```bash
+# Portfolio only
+npx degit amoree-code/SOLID/apps/portfolio my-portfolio
+cd my-portfolio && pnpm install && pnpm dev
+```
+
+Or clone the repository and work inside one app's folder. Every command runs from there:
 
 ```bash
 git clone https://github.com/amoree-code/SOLID.git
@@ -25,39 +47,14 @@ pnpm install
 pnpm dev
 ```
 
-Or pull straight from GitHub with nothing local beyond `npx` — no cloning the full repo first.
-Run any one of these on its own, or any combination of them — each is completely independent,
-so taking one, two, or all three is exactly the same three commands repeated:
+Each app's README covers its architecture, environment variables and commands.
 
-```bash
-# Just the backend
-npx degit amoree-code/SOLID/apps/backend my-backend
-cd my-backend && pnpm install && pnpm dev
-```
+## Why one repository, zero coupling
 
-```bash
-# Just the dashboard
-npx degit amoree-code/SOLID/apps/dashboard my-dashboard
-cd my-dashboard && pnpm install && pnpm dev
-```
+The apps are grouped here only so related work is easy to find. There is deliberately no
+root `package.json`, no `pnpm-workspace.yaml`, no shared lockfile, no shared package and no
+cross-app import. Copying one app never pulls in anything from the others.
 
-```bash
-# Just the portfolio
-npx degit amoree-code/SOLID/apps/portfolio my-portfolio
-cd my-portfolio && pnpm install && pnpm dev
-```
-
-Want two or three of them? Run the matching commands above side by side, into separate
-folders — there's no combined install step, because there's nothing shared to install once.
-
-## Why apps live in one repo but stay decoupled
-
-They're grouped here for convenience only — so related work is easy to find in one place. There
-is deliberately no `pnpm-workspace.yaml`, no root `package.json`, no shared lockfile, and no
-root-level git hooks: cloning or `degit`-ing a single app never pulls in anything from the
-others, and nothing in one app's `package.json` or lockfile references another.
-
-The only thing that has to live at the repo root is `.github/workflows/*-ci.yml` — GitHub
-Actions only ever reads workflows from that exact path, no way around it. Each workflow is
-still fully independent: it's path-filtered to its own app's folder and only ever installs and
-runs that one app's own `package.json`/lockfile.
+The only shared location is `.github/workflows/`, because GitHub Actions reads workflows
+only from there. Each `*-ci.yml` is path-filtered to its own app and installs only that
+app's lockfile.

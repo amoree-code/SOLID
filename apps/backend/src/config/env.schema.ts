@@ -3,11 +3,17 @@ import { z } from 'zod';
 export const envSchema = z.object({
   DATABASE_URL: z.string().url(),
   PORT: z.coerce.number().int().positive().default(3000),
-  CORS_ORIGIN: z.string().url(),
-  JWT_ACCESS_SECRET: z.string().min(16),
-  JWT_ACCESS_EXPIRES_IN: z.string().default('15m'),
-  JWT_REFRESH_SECRET: z.string().min(16),
-  JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
+  /** Comma-separated list of allowed browser origins. Empty = CORS disabled. */
+  CORS_ORIGIN: z
+    .string()
+    .default('')
+    .transform((value) =>
+      value
+        .split(',')
+        .map((origin) => origin.trim())
+        .filter(Boolean),
+    )
+    .pipe(z.array(z.string().url())),
 });
 
 export type Env = z.infer<typeof envSchema>;

@@ -56,10 +56,6 @@ jobs:
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/solid_backend_test?schema=public
       CORS_ORIGIN: http://localhost:5173
-      JWT_ACCESS_SECRET: ci-only-access-secret-not-for-production
-      JWT_ACCESS_EXPIRES_IN: 15m
-      JWT_REFRESH_SECRET: ci-only-refresh-secret-not-for-production
-      JWT_REFRESH_EXPIRES_IN: 7d
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

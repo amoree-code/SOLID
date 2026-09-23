@@ -1,5 +1,4 @@
 import { PrismaPg } from '@prisma/adapter-pg';
-import * as bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 import { PrismaClient } from '../src/generated/prisma/client.js';
 
@@ -10,29 +9,20 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
-  const passwordHash = await bcrypt.hash('password123', 10);
+  // Idempotent: only seeds an empty table, so re-running never duplicates rows.
+  if ((await prisma.exampleResource.count()) > 0) {
+    console.log('example_resources already has rows — skipping seed.');
+    return;
+  }
 
-  await prisma.user.upsert({
-    where: { email: 'demo@example.com' },
-    update: {},
-    create: {
-      email: 'demo@example.com',
-      name: 'Demo User',
-      passwordHash,
-      roles: ['admin'],
-      permissions: ['items.read', 'items.create', 'items.update', 'items.delete', 'settings.read'],
-    },
-  });
-
-  await prisma.item.createMany({
+  await prisma.exampleResource.createMany({
     data: [
-      { name: 'First item', status: 'active' },
-      { name: 'Second item', status: 'inactive' },
+      { name: 'First example', status: 'active' },
+      { name: 'Second example', status: 'inactive' },
     ],
-    skipDuplicates: true,
   });
 
-  console.log('Seeded demo@example.com / password123 (verification code: 123456)');
+  console.log('Seeded 2 example resources.');
 }
 
 main()

@@ -1,0 +1,82 @@
+import type { ColumnDef } from '@tanstack/react-table';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi } from 'vitest';
+import { DataTable } from '../data-table';
+import { DataTableColumnToggle } from '../data-table-column-toggle';
+import { DataTablePagination } from '../data-table-pagination';
+
+type Row = { id: string; name: string };
+
+const columns: ColumnDef<Row, unknown>[] = [
+  { accessorKey: 'id', header: 'ID' },
+  { accessorKey: 'name', header: 'Name' },
+];
+
+describe('DataTable', () => {
+  it('renders a header and one row per item', () => {
+    render(<DataTable columns={columns} data={[{ id: '1', name: 'Alpha' }]} />);
+
+    expect(screen.getByRole('columnheader', { name: 'Name' })).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'Alpha' })).toBeInTheDocument();
+  });
+
+  it('renders the loading state instead of rows while loading', () => {
+    render(<DataTable columns={columns} data={[{ id: '1', name: 'Alpha' }]} isLoading />);
+
+    expect(screen.getByLabelText('Loading')).toBeInTheDocument();
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  });
+
+  it('renders the empty message when there is no data', () => {
+    render(<DataTable columns={columns} data={[]} emptyMessage="Nothing here." />);
+
+    expect(screen.getByText('Nothing here.')).toBeInTheDocument();
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  });
+
+  it('hides a column from the toolbar column toggle', async () => {
+    render(
+      <DataTable
+        columns={columns}
+        data={[{ id: '1', name: 'Alpha' }]}
+        toolbar={(table) => <DataTableColumnToggle table={table} />}
+      />,
+    );
+
+    await userEvent.click(screen.getByText('Columns'));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Show Name column' }));
+
+    expect(screen.queryByRole('columnheader', { name: 'Name' })).not.toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'Show Name column' })).not.toBeChecked();
+  });
+});
+
+describe('DataTablePagination', () => {
+  it('disables Previous on the first page and Next on the last', () => {
+    render(<DataTablePagination page={1} pageSize={25} total={25} onPageChange={() => {}} />);
+
+    expect(screen.getByRole('button', { name: 'Previous' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
+  });
+
+  it('reports the requested page and page size', async () => {
+    const onPageChange = vi.fn();
+    const onPageSizeChange = vi.fn();
+    render(
+      <DataTablePagination
+        page={2}
+        pageSize={25}
+        total={100}
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await userEvent.selectOptions(screen.getByLabelText('Rows per page'), '50');
+
+    expect(onPageChange).toHaveBeenCalledWith(3);
+    expect(onPageSizeChange).toHaveBeenCalledWith(50);
+  });
+});
