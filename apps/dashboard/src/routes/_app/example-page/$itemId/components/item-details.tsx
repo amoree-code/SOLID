@@ -1,5 +1,6 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
+import { toast } from 'sonner';
 import { PageHeader } from '@/shared/components/layout/page-header';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { ItemForm } from '../../components/item-form';
@@ -31,11 +32,13 @@ export function ItemDetails({ itemId }: ItemDetailsProps) {
             defaultValues={{ name: item.name, status: item.status }}
             isSubmitting={updateMutation.isPending}
             submitError={updateMutation.error}
-            onSubmit={(values) => updateMutation.mutate({ id: item.id, ...values })}
+            onSubmit={(values) =>
+              updateMutation.mutate(
+                { id: item.id, ...values },
+                { onSuccess: (saved) => toast.success(`Saved "${saved.name}".`) },
+              )
+            }
           />
-          {updateMutation.isSuccess ? (
-            <output className="text-sm text-muted-foreground">Saved.</output>
-          ) : null}
         </CardContent>
       </Card>
     </div>

@@ -3,10 +3,31 @@ import path from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
+
+/**
+ * The API URL is baked into the bundle at build time. Without it the app would
+ * build fine and then fail in every user's browser — so fail the build instead.
+ * A plugin (not a check in the config body) so it runs only for a real
+ * `vite build`: tools that just read this config (Knip, Vitest) are unaffected.
+ */
+function requireApiBaseUrlOnBuild(): Plugin {
+  return {
+    name: 'require-api-base-url',
+    apply: 'build',
+    configResolved(config) {
+      if (!config.env.VITE_API_BASE_URL) {
+        throw new Error(
+          'VITE_API_BASE_URL is required for a production build (set it in .env or the environment).',
+        );
+      }
+    },
+  };
+}
 
 export default defineConfig(({ mode }) => ({
   plugins: [
+    requireApiBaseUrlOnBuild(),
     // Route-tree generation only matters for dev/build; running it under Vitest
     // just re-scans every page file on each test run and logs noisy warnings.
     ...(mode === 'test'

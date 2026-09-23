@@ -10,10 +10,17 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
-# ---- build: compile TS, generate the Prisma client, prune to prod deps ----
-FROM deps AS build
+# ---- source: full source + generated Prisma client (dev deps still present) ----
+FROM deps AS source
 COPY . .
 RUN pnpm db:generate
+
+# ---- migrate: one-shot job that applies pending migrations (docker compose uses it) ----
+FROM source AS migrate
+CMD ["pnpm", "db:deploy"]
+
+# ---- build: compile TS, prune to prod deps ----
+FROM source AS build
 RUN pnpm build
 RUN pnpm prune --prod
 

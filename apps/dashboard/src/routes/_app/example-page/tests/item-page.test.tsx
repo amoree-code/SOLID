@@ -24,7 +24,7 @@ describe('example page', () => {
 
     await renderApp('/example-page?page=2&status=active&search=al&sort=name&order=asc&bogus=1');
 
-    expect(get).toHaveBeenCalledWith('/items', {
+    expect(get).toHaveBeenCalledWith('/example-resources', {
       params: { page: 2, pageSize: 25, status: 'active', search: 'al', sort: 'name', order: 'asc' },
     });
     const table = await screen.findByRole('table');
@@ -59,5 +59,32 @@ describe('example page', () => {
     await renderApp('/example-page?search=zzz');
 
     expect(await screen.findByText('No items match your filters.')).toBeInTheDocument();
+  });
+
+  it('sorts by a column header click, flipping the order on a second click', async () => {
+    stubList();
+    const { router } = await renderApp('/example-page');
+
+    await userEvent.click(await screen.findByRole('button', { name: /^Name, not sorted/ }));
+    expect(router.state.location.search).toEqual({ sort: 'name', order: 'asc' });
+
+    await userEvent.click(await screen.findByRole('button', { name: /^Name, sorted ascending/ }));
+    expect(router.state.location.search).toEqual({ sort: 'name' });
+  });
+
+  it('creates an item from the dialog and confirms it with a toast', async () => {
+    stubList();
+    const post = vi.spyOn(httpClient, 'post').mockResolvedValue({
+      data: { id: '3', name: 'Gamma', status: 'active', createdAt: '2026-01-03T00:00:00.000Z' },
+    });
+    await renderApp('/example-page');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'New item' }));
+    await userEvent.type(await screen.findByLabelText('Name'), 'Gamma');
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(post).toHaveBeenCalledWith('/example-resources', { name: 'Gamma', status: 'active' });
+    expect(await screen.findByText('Created "Gamma".')).toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });

@@ -4,7 +4,7 @@ import { DataTableColumnToggle } from '@/shared/components/data-table/data-table
 import { DataTablePagination } from '@/shared/components/data-table/data-table-pagination';
 import { ITEM_PAGE_SIZES } from '../schemas/item-search.schema';
 import type { ItemListResponse } from '../types';
-import { itemColumns } from './item-columns';
+import { useItemColumns } from './item-columns';
 
 const routeApi = getRouteApi('/_app/example-page/');
 
@@ -14,11 +14,12 @@ type ItemTableProps = {
 
 export function ItemTable({ data }: ItemTableProps) {
   const navigate = routeApi.useNavigate();
+  const columns = useItemColumns();
 
   return (
     <div className="flex flex-col">
       <DataTable
-        columns={itemColumns}
+        columns={columns}
         data={data.items}
         getRowId={(item) => item.id}
         emptyMessage="No items match your filters."

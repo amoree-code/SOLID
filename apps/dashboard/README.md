@@ -27,17 +27,32 @@ There is no global state library. See [State ownership](#state-ownership).
 
 ```bash
 pnpm install
-cp .env.example .env        # set VITE_API_BASE_URL to your API
-pnpm dev
+pnpm dev          # http://localhost:5173
+```
+
+With no `.env`, development talks to `http://localhost:3000`, where the backend template
+listens (`apps/backend`: `pnpm quickstart && pnpm dev`). The example page calls
+`/example-resources` there, so the two templates work together straight away. They still
+share no code. Point the dashboard at any other API with `.env`:
+
+```bash
+cp .env.example .env        # then set VITE_API_BASE_URL
 ```
 
 | Variable | Required | Meaning |
 |---|---|---|
-| `VITE_API_BASE_URL` | yes | Base URL of the API every service calls, e.g. `https://api.example.com` |
+| `VITE_API_BASE_URL` | production builds | Base URL of the API: absolute (`https://api.example.com`) or a same-origin path (`/api`). Defaults to `http://localhost:3000` in `pnpm dev` only |
 | `VITE_APP_NAME` | no | Shown in the sidebar and the tab title. Defaults to `Dashboard` |
 
-Both are validated with Zod at startup (`app/config/env.ts`). A missing or malformed value
-fails immediately instead of on the first request.
+Both are validated with Zod at startup (`app/config/env.ts`). Because the URL is baked into
+the bundle, `vite build` itself refuses to run without `VITE_API_BASE_URL`. That way you
+never ship a bundle that fails in every user's browser.
+
+Docker (static files served by nginx):
+
+```bash
+docker build --build-arg VITE_API_BASE_URL=https://api.example.com -t dashboard .
+```
 
 ## Commands
 
@@ -71,7 +86,7 @@ src/
 ├── shared/                  # reusable, domain-free code only
 │   ├── components/
 │   │   ├── ui/              # shadcn/ui primitives (generated, not linted)
-│   │   ├── data-table/      # DataTable, pagination, column toggle
+│   │   ├── data-table/      # DataTable, sort header, pagination, column toggle
 │   │   ├── feedback/        # empty/error/loading states, confirm dialog, boundaries
 │   │   ├── forms/           # FormField
 │   │   └── layout/          # sidebar, header, page header, theme/locale switchers
@@ -124,6 +139,7 @@ if it carries no domain knowledge.
 |---|---|
 | Server data | TanStack Query. Never copied into `useState` |
 | Filters, sorting, pagination | URL search params, validated by the route |
+| Success / failure notices | Toasts (`sonner`), raised by components, never by services |
 | Form values | React Hook Form |
 | Simple local UI state | `useState` |
 | Complex local workflows | `useReducer` |
@@ -137,6 +153,10 @@ if it carries no domain knowledge.
 ```text
 /example-page?page=2&pageSize=25&status=active&search=amer&sort=createdAt&order=desc
 ```
+
+Sorting is done from the column headers (`DataTableSortHeader`): clicking the sorted column
+flips its order, clicking another sorts it ascending. The page decides that
+(`nextSort` in `item-columns.tsx`) and writes it to the URL like any other filter.
 
 Every key has a default and a per-key fallback, so a malformed or stale URL still renders
 instead of erroring. Defaults are stripped from the URL (`stripSearchParams`) to keep links
@@ -182,6 +202,12 @@ RTL works without per-component changes. Plug in a translation system on top of
 Tests stub the network at the `httpClient` boundary (Vitest) or at the browser network layer
 (`page.route` in Playwright). The app bundle itself contains no mocks.
 
+## Bundle budget
+
+`.size-limit.json` caps the initial load at 120 kB (brotli) and all JS at 350 kB. The core
+uses about 109 kB initially, which leaves room for the first real pages. `pnpm size` fails
+CI once a change crosses the budget.
+
 ## CI
 
 `.github/workflows/dashboard-ci.yml` at the repository root runs only when `apps/dashboard/**`
@@ -197,4 +223,3 @@ Not implemented in the core, on purpose. Add them per project:
 - **Authorization:** route-level checks in `beforeLoad` plus a component guard, fed by
   whatever your API issues.
 - **Translations:** any i18n library, keyed off `useLocale().locale`.
-- **Toasts:** a toaster in `AppProviders`, triggered from components (never from services).

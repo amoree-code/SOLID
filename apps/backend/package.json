@@ -12,6 +12,7 @@
     "prisma"
   ],
   "scripts": {
+    "quickstart": "node scripts/quickstart.mjs",
     "build": "nest build",
     "start": "nest start",
     "dev": "nest start --watch",
@@ -39,12 +40,15 @@
     "@nestjs/core": "^12.0.1",
     "@nestjs/platform-express": "^12.0.1",
     "@nestjs/swagger": "^12.0.1",
+    "@nestjs/throttler": "^6.7.0",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
+    "helmet": "^8.3.0",
     "pg": "^8.23.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "zod-to-json-schema": "^3.25.2"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",

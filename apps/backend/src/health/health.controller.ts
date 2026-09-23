@@ -1,7 +1,10 @@
 import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { SkipThrottle } from '@nestjs/throttler';
 import { PrismaService } from '../database/prisma.service.js';
 
+// Orchestrators poll these constantly; they must never be rate-limited.
+@SkipThrottle()
 @ApiTags('health')
 @Controller('health')
 export class HealthController {

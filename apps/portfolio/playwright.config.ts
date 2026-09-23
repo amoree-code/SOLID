@@ -6,13 +6,14 @@ export default defineConfig({
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? 'github' : 'list',
+  // Own port (the dashboard's e2e uses 4173), so the two never test each other's server.
   use: {
-    baseURL: 'http://localhost:4173',
+    baseURL: 'http://localhost:4273',
     trace: 'on-first-retry',
   },
   webServer: {
-    command: 'pnpm build && pnpm start --port 4173',
-    url: 'http://localhost:4173',
+    command: 'pnpm build && pnpm start --port 4273',
+    url: 'http://localhost:4273',
     reuseExistingServer: !process.env.CI,
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],

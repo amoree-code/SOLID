@@ -1,5 +1,6 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { PageHeader } from '@/shared/components/layout/page-header';
 import { Button } from '@/shared/components/ui/button';
 import {
@@ -53,7 +54,10 @@ export function ItemPage({ search }: ItemPageProps) {
             onCancel={() => handleCreateOpenChange(false)}
             onSubmit={(values) => {
               createMutation.mutate(values, {
-                onSuccess: () => handleCreateOpenChange(false),
+                onSuccess: (item) => {
+                  handleCreateOpenChange(false);
+                  toast.success(`Created "${item.name}".`);
+                },
               });
             }}
           />

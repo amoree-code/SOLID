@@ -1,6 +1,7 @@
-# Local dev/testing only. `postgres` is what this app needs to run for real
-# (migrate, seed, e2e tests that actually query data). Prefer `pnpm dev`
-# against this Postgres instead of rebuilding the image on every change.
+# Local dev/testing only.
+#   docker compose up -d postgres        just the database (what `pnpm quickstart` starts)
+#   docker compose --profile full up     database + migrations + the API, nothing else needed
+# POSTGRES_PORT (default 5432) and API_PORT (default 3000) move the host ports if taken.
 
 services:
   postgres:
@@ -10,7 +11,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: solid_backend
     ports:
-      - '5432:5432'
+      - '${POSTGRES_PORT:-5432}:5432'
     volumes:
       - solid_backend_postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -19,19 +20,37 @@ services:
       timeout: 5s
       retries: 10
 
-  backend:
+  # Applies pending migrations once, then exits; the API waits for it to succeed.
+  migrate:
     build:
       context: .
-      dockerfile: Dockerfile
+      target: migrate
     profiles: ['full']
     depends_on:
       postgres:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/solid_backend?schema=public
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    profiles: ['full']
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/solid_backend?schema=public
       CORS_ORIGIN: http://localhost:5173
     ports:
-      - '3000:3000'
+      - '${API_PORT:-3000}:3000'
+    # Healthy only once Nest is actually serving (busybox wget ships with node:alpine).
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:3000/health || exit 1']
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
 volumes:
   solid_backend_postgres_data:

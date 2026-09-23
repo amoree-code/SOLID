@@ -13,7 +13,7 @@ const items = Array.from({ length: 30 }, (_, index) => ({
 async function stubItemsApi(page: Page) {
   const listRequests: URL[] = [];
 
-  await page.route(/\/api\/items(\?|$)/, async (route) => {
+  await page.route(/\/example-resources(\?|$)/, async (route) => {
     const url = new URL(route.request().url());
     listRequests.push(url);
     const pageNumber = Number(url.searchParams.get('page') ?? 1);
@@ -27,7 +27,7 @@ async function stubItemsApi(page: Page) {
     });
   });
 
-  await page.route(/\/api\/items\/[^/?]+$/, async (route) => {
+  await page.route(/\/example-resources\/[^/?]+$/, async (route) => {
     const id = new URL(route.request().url()).pathname.split('/').pop();
     const item = items.find((candidate) => candidate.id === id);
     await (item

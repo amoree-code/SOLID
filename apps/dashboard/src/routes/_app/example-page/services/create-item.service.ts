@@ -3,6 +3,6 @@ import { itemSchema } from '../schemas/item.schema';
 import type { CreateItemInput, Item } from '../types';
 
 export async function createItem(input: CreateItemInput): Promise<Item> {
-  const response = await httpClient.post<unknown>('/items', input);
+  const response = await httpClient.post<unknown>('/example-resources', input);
   return itemSchema.parse(response.data);
 }

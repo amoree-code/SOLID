@@ -41,7 +41,8 @@ export function DataTablePagination({
             <SelectContent>
               {pageSizeOptions.map((option) => (
                 <SelectItem key={option} value={String(option)}>
-                  {option} / page
+                  {/* Starts with a letter so it reads correctly in RTL too ("25 / page" flips). */}
+                  Rows: {option}
                 </SelectItem>
               ))}
             </SelectContent>
