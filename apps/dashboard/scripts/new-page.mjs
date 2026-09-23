@@ -92,6 +92,7 @@ if (fs.existsSync(dest)) {
 function transformContent(content) {
   return content
     .replaceAll('Item', PascalSingular)
+    .replaceAll('/example-resources', `/${plural}`)
     .replaceAll('example-page', plural)
     .replace(/\/items(?=[/'"`])/g, `/${plural}`)
     .replace(/\['items'\]/g, `['${plural}']`)
@@ -132,6 +133,8 @@ console.log('Next steps (not automated — small, reviewable edits):');
 console.log('  1. Run `pnpm dev` (or `pnpm typecheck`) once so routeTree.gen.ts picks up the');
 console.log('     new route files — the new page will not compile until then');
 console.log('  2. Add a sidebar link in src/shared/components/layout/app-sidebar.tsx');
-console.log(`  3. Point ${relativeTarget}/services/*.ts at the real API endpoints`);
+console.log(
+  `  3. Check ${relativeTarget}/services/*.ts — they call /${plural} on VITE_API_BASE_URL`,
+);
 console.log(`  4. Update ${relativeTarget}/schemas/${singular}.schema.ts to match the real fields`);
 console.log(`  5. Review ${relativeTarget}/tests/ — assertions still describe the old fields`);

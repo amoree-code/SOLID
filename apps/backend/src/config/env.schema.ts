@@ -14,6 +14,9 @@ export const envSchema = z.object({
         .filter(Boolean),
     )
     .pipe(z.array(z.string().url())),
+  /** Rate limit: at most RATE_LIMIT_MAX requests per client per RATE_LIMIT_WINDOW_MS. */
+  RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
+  RATE_LIMIT_MAX: z.coerce.number().int().positive().default(100),
 });
 
 export type Env = z.infer<typeof envSchema>;

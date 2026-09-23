@@ -76,7 +76,7 @@ describe('DataTablePagination', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Next' }));
     await userEvent.click(screen.getByRole('combobox', { name: 'Rows per page' }));
-    await userEvent.click(await screen.findByRole('option', { name: '50 / page' }));
+    await userEvent.click(await screen.findByRole('option', { name: 'Rows: 50' }));
 
     expect(onPageChange).toHaveBeenCalledWith(3);
     expect(onPageSizeChange).toHaveBeenCalledWith(50);

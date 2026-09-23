@@ -5,7 +5,13 @@ const base = { DATABASE_URL: 'postgresql://user:pass@localhost:5432/db' };
 
 describe('validateEnv', () => {
   it('applies defaults and disables CORS when no origin is set', () => {
-    expect(validateEnv(base)).toEqual({ ...base, PORT: 3000, CORS_ORIGIN: [] });
+    expect(validateEnv(base)).toEqual({
+      ...base,
+      PORT: 3000,
+      CORS_ORIGIN: [],
+      RATE_LIMIT_WINDOW_MS: 60_000,
+      RATE_LIMIT_MAX: 100,
+    });
   });
 
   it('splits a comma-separated CORS origin list', () => {

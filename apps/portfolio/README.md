@@ -21,6 +21,10 @@ cp .env.example .env
 pnpm dev
 ```
 
+| Variable | Meaning |
+|---|---|
+| `NEXT_PUBLIC_SITE_URL` | The deployed origin, e.g. `https://yourname.dev`. Every absolute URL (canonical, share card, sitemap, robots, structured data) is built from it. A malformed value fails the build |
+
 Then edit **one file**: `src/content/profile.ts`. Every section reads from it — the name,
 role, bio, projects, and contact links shown on the page all come from there, nothing is
 hardcoded into a component.
@@ -46,6 +50,16 @@ Content lives separately from presentation on purpose: a section component only 
 to render a `Profile`/`Project`/`Link`, never the literal text — so updating your bio,
 adding a project, or changing a link never touches a component file.
 
+## SEO
+
+Built in, all generated from `profile.ts` and `NEXT_PUBLIC_SITE_URL`:
+
+- Title, description, canonical URL, Open Graph and Twitter card tags (`app/layout.tsx`)
+- A 1200×630 share image rendered at build time (`app/opengraph-image.tsx`), so there is no
+  image file to keep in sync
+- schema.org `Person` structured data (`lib/structured-data.ts`)
+- `/sitemap.xml` and `/robots.txt`
+
 ## Adding a new section
 
 1. Add whatever data it needs to `src/content/profile.ts` (and its type).
@@ -56,8 +70,9 @@ adding a project, or changing a link never touches a component file.
 ## Testing
 
 Same split as the other apps in this repo: `e2e/unit/` (Vitest + Testing Library, mirrors
-`src/`) for component-level tests, `e2e/flows/` (Playwright) for the one thing worth
-checking end-to-end here — that the page actually renders its sections.
+`src/`) for component-level tests, `e2e/flows/` (Playwright) for what's worth checking end-to-end: the page renders its
+sections, and the SEO tags, share image, sitemap and robots.txt are served. Playwright uses
+port 4273, so it never collides with the dashboard's e2e server on 4173.
 
 ## Commands
 

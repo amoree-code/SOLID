@@ -7,9 +7,12 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu';
 
-// A string header is the user-facing name; fall back to the id for custom headers.
+// `meta.label` first (headers can be components), then a plain-text header, then the id.
 function columnLabel<TData>(column: Column<TData, unknown>): string {
-  const { header } = column.columnDef;
+  const { header, meta } = column.columnDef;
+  if (meta?.label) {
+    return meta.label;
+  }
   return typeof header === 'string' && header ? header : column.id;
 }
 

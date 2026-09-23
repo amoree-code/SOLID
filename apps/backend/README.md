@@ -17,7 +17,8 @@ a real project and are listed under [Optional starters](#optional-starters).
 | ORM | Prisma 7 (`@prisma/adapter-pg` driver adapter) |
 | Validation | Zod, via a small `ZodValidationPipe` bound per parameter |
 | Config | `@nestjs/config`, validated with Zod at boot (`src/config/env.schema.ts`) |
-| API docs | `@nestjs/swagger` at `/docs` |
+| API docs | `@nestjs/swagger` at `/docs`, schemas generated from Zod |
+| Security | `helmet` headers, `@nestjs/throttler` rate limiting |
 | Quality | Biome, Vitest, Supertest |
 | Runtime | Docker (multi-stage, non-root), `docker-compose.yml` for local Postgres |
 
@@ -25,11 +26,19 @@ a real project and are listed under [Optional starters](#optional-starters).
 
 ```bash
 pnpm install
-cp .env.example .env
-docker compose up -d postgres   # or point DATABASE_URL at any Postgres
-pnpm db:migrate
-pnpm db:seed                    # two example rows (skipped if the table has data)
-pnpm dev
+pnpm quickstart   # .env + local Postgres (Docker) + migrations + example rows
+pnpm dev          # http://localhost:3000, docs at http://localhost:3000/docs
+```
+
+`pnpm quickstart` is safe to re-run: it never overwrites an existing `.env`, and it seeds only
+an empty table. If port 5432 is taken, set `POSTGRES_PORT` in `.env` and use the same port in
+`DATABASE_URL`. To use your own Postgres instead of Docker, set `DATABASE_URL` and run
+`pnpm quickstart --no-docker`.
+
+Everything in containers (database, migrations, then the API), with nothing installed locally:
+
+```bash
+docker compose --profile full up     # API on http://localhost:3000 (API_PORT to change it)
 ```
 
 | Variable | Required | Meaning |
@@ -37,8 +46,8 @@ pnpm dev
 | `DATABASE_URL` | yes | PostgreSQL connection string |
 | `PORT` | no | Defaults to `3000` |
 | `CORS_ORIGIN` | no | Comma-separated allowed browser origins. Empty disables CORS |
-
-Swagger UI: `http://localhost:3000/docs`.
+| `RATE_LIMIT_MAX` / `RATE_LIMIT_WINDOW_MS` | no | Requests allowed per client per window. Defaults `100` / `60000` |
+| `POSTGRES_PORT` / `API_PORT` | no | Host ports for Docker Postgres / the API container. Defaults `5432` / `3000` |
 
 ## Commands
 
@@ -53,6 +62,7 @@ Swagger UI: `http://localhost:3000/docs`.
 | `pnpm db:generate` | Generate the Prisma client (needed before typecheck/build) |
 | `pnpm db:migrate` / `pnpm db:deploy` | Create+apply migrations (dev) / apply them (deploy) |
 | `pnpm db:seed` / `pnpm db:studio` | Seed example rows / browse data |
+| `pnpm quickstart` | First-run setup: env, database, migrations, seed |
 | `pnpm new:resource <singular> <plural>` | Scaffold a resource from `example-resource` |
 | `pnpm verify` | typecheck, lint, test, build |
 
@@ -60,11 +70,13 @@ Swagger UI: `http://localhost:3000/docs`.
 
 ```text
 src/
-├── main.ts                    # bootstrap: CORS, global filter, Swagger, shutdown hooks
-├── app.module.ts
+├── main.ts                    # bootstrap: read config, configureApp(), listen
+├── app.setup.ts               # helmet, CORS, error filter, Swagger — shared with the tests
+├── app.module.ts              # config, rate limiting (global guard), modules
 ├── config/                    # env schema, validated at boot
 ├── common/
 │   ├── filters/               # HttpExceptionFilter: one error shape for everything
+│   ├── openapi/               # Swagger decorators generated from Zod schemas
 │   └── pipes/                 # ZodValidationPipe
 ├── database/                  # PrismaModule (global), PrismaService
 ├── health/                    # GET /health (liveness), GET /health/ready (database)
@@ -99,7 +111,15 @@ as a generic `500` with `code: "INTERNAL_ERROR"`. Their internals never reach th
 default instead of failing the request.
 
 **Health:** `GET /health` never touches dependencies (liveness). `GET /health/ready`
-returns `503` when the database does not answer (readiness).
+returns `503` when the database does not answer (readiness). Neither is rate-limited.
+
+**Security:** `helmet` sets security headers on every response. Every route is rate-limited
+per client (`429` in the normal error shape); opt a controller out with `@SkipThrottle()`.
+
+**Docs:** `/docs` (Swagger UI) and `/docs-json` (OpenAPI). Request bodies, query parameters
+and responses are generated from the same Zod schemas that validate requests, via
+`ApiZodBody`, `ApiZodQuery` and `ApiZodResponse` in `common/openapi/`. The docs can't drift
+from the validation.
 
 ## Adding a resource
 
@@ -122,6 +142,7 @@ implementation actually exists.
 | Layer | Where | Needs a database |
 |---|---|---|
 | Unit | `src/**/*.spec.ts`, next to the code | no |
+| App setup | `app.setup.spec.ts`: headers, CORS, rate limit, Swagger | no |
 | HTTP (Supertest) | `*.controller.spec.ts`, with an in-memory repository | no |
 | End-to-end | `test/*.e2e-spec.ts`, the full `AppModule` | yes (migrated) |
 
@@ -129,7 +150,7 @@ implementation actually exists.
 
 ```bash
 docker build -t backend .
-docker compose --profile full up     # Postgres + the API
+docker compose --profile full up -d --wait   # Postgres → migrations → API (healthchecked)
 ```
 
 ## CI

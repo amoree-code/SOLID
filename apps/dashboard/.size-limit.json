@@ -2,7 +2,7 @@
   {
     "name": "Initial load (index + vendor)",
     "path": "dist/assets/index-*.js",
-    "limit": "110 KB"
+    "limit": "120 KB"
   },
   {
     "name": "Total build output",

@@ -31,6 +31,7 @@ export function ItemFilter() {
     }
   }
 
+  // Sorting lives on the column headers (see item-columns.tsx).
   // Any filter change resets to page 1 — page 3 of the old result set is meaningless.
   function patch(partial: Partial<ItemSearch>, replace = false) {
     navigate({ search: (prev) => ({ ...prev, ...partial, page: 1 }), replace });
@@ -64,30 +65,6 @@ export function ItemFilter() {
           <SelectItem value="all">All statuses</SelectItem>
           <SelectItem value="active">Active</SelectItem>
           <SelectItem value="inactive">Inactive</SelectItem>
-        </SelectContent>
-      </Select>
-      <Select
-        value={search.sort}
-        onValueChange={(value) => patch({ sort: value as ItemSearch['sort'] })}
-      >
-        <SelectTrigger aria-label="Sort by">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="createdAt">Created date</SelectItem>
-          <SelectItem value="name">Name</SelectItem>
-        </SelectContent>
-      </Select>
-      <Select
-        value={search.order}
-        onValueChange={(value) => patch({ order: value as ItemSearch['order'] })}
-      >
-        <SelectTrigger aria-label="Order">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="desc">Descending</SelectItem>
-          <SelectItem value="asc">Ascending</SelectItem>
         </SelectContent>
       </Select>
     </div>
