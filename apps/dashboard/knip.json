@@ -1,10 +1,11 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": ["src/routes/**/*.{ts,tsx}"],
+  "entry": ["src/routes/**/*.{ts,tsx}", "src/shared/**/*.{ts,tsx}"],
   "project": ["src/**/*.{ts,tsx,css}"],
-  "ignore": ["src/shared/components/ui/**"],
+  "ignore": ["src/shared/components/ui/**", "scripts/templates/**"],
   "ignoreExportsUsedInFile": true,
   "vite": {
     "config": "vite.config.ts"
-  }
+  },
+  "ignoreDependencies": ["@hookform/resolvers", "@tanstack/zod-adapter", "react-hook-form"]
 }

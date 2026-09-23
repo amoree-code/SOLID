@@ -10,3 +10,16 @@ export const httpClient = axios.create({
   baseURL: appConfig.apiBaseUrl,
   headers: { Accept: 'application/json' },
 });
+
+/** A setup mistake, not a server failure — its message is safe and useful to show. */
+export class ApiConfigError extends Error {
+  override name = 'ApiConfigError';
+}
+
+// Without a base URL, requests would silently go to the dashboard's own origin.
+httpClient.interceptors.request.use((config) => {
+  if (!config.baseURL) {
+    throw new ApiConfigError('VITE_API_BASE_URL is not set — add it to .env to call an API.');
+  }
+  return config;
+});

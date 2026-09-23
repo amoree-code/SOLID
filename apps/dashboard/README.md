@@ -1,11 +1,11 @@
 # Dashboard Template
 
-A minimal, domain-neutral React dashboard: TanStack Router (file-based, typed URL state),
-TanStack Query, TanStack Table, shadcn/ui and Tailwind. It talks to **any** HTTP API through
-one configured base URL. It does not depend on any particular backend, including the one in
-this repository.
+An empty, domain-neutral React dashboard base: TanStack Router (file-based, typed URL
+state), TanStack Query, TanStack Table, shadcn/ui and Tailwind. It ships with **no pages
+beyond Home** and calls **no API**, so it runs right after cloning. A generator adds complete
+pages when you need them.
 
-The core has **no** authentication, sessions, permissions, translation system, or runtime
+The core has **no** authentication, sessions, permissions, translation system or runtime
 mocks. Those belong to a real project and are listed under [Optional starters](#optional-starters).
 
 ## Stack
@@ -17,7 +17,7 @@ mocks. Those belong to a real project and are listed under [Optional starters](#
 | Server state | TanStack Query (`queryOptions`, key factories, mutation hooks) |
 | Tables | TanStack Table (headless) behind a shared `DataTable` |
 | Forms | React Hook Form + Zod |
-| UI | shadcn/ui (Radix) + Tailwind CSS 4 |
+| UI | shadcn/ui (Radix) + Tailwind CSS 4, toasts via `sonner` |
 | HTTP | One Axios instance (`shared/services/http-client.ts`) |
 | Quality | Biome, Vitest + Testing Library, Playwright, Knip, Size Limit |
 
@@ -27,13 +27,10 @@ There is no global state library. See [State ownership](#state-ownership).
 
 ```bash
 pnpm install
-pnpm dev          # http://localhost:5173
+pnpm dev          # http://localhost:5173 — no .env needed
 ```
 
-With no `.env`, development talks to `http://localhost:3000`, where the backend template
-listens (`apps/backend`: `pnpm quickstart && pnpm dev`). The example page calls
-`/example-resources` there, so the two templates work together straight away. They still
-share no code. Point the dashboard at any other API with `.env`:
+The base calls no API. Once you add pages that do, set the API's address:
 
 ```bash
 cp .env.example .env        # then set VITE_API_BASE_URL
@@ -41,12 +38,12 @@ cp .env.example .env        # then set VITE_API_BASE_URL
 
 | Variable | Required | Meaning |
 |---|---|---|
-| `VITE_API_BASE_URL` | production builds | Base URL of the API: absolute (`https://api.example.com`) or a same-origin path (`/api`). Defaults to `http://localhost:3000` in `pnpm dev` only |
+| `VITE_API_BASE_URL` | once a page calls an API | Absolute (`https://api.example.com`) or a same-origin path (`/api`) |
 | `VITE_APP_NAME` | no | Shown in the sidebar and the tab title. Defaults to `Dashboard` |
 
-Both are validated with Zod at startup (`app/config/env.ts`). Because the URL is baked into
-the bundle, `vite build` itself refuses to run without `VITE_API_BASE_URL`. That way you
-never ship a bundle that fails in every user's browser.
+Both are validated with Zod at startup (`app/config/env.ts`). If a request is made without
+`VITE_API_BASE_URL`, the HTTP client refuses to send it and the page shows a clear message.
+It never silently calls the dashboard's own origin.
 
 Docker (static files served by nginx):
 
@@ -64,9 +61,11 @@ docker build --build-arg VITE_API_BASE_URL=https://api.example.com -t dashboard 
 | `pnpm lint` / `pnpm lint:ci` | Biome with / without autofix |
 | `pnpm test` | Unit and integration tests (Vitest) |
 | `pnpm e2e` | Playwright against the production build (`pnpm e2e:install` once) |
+| `pnpm new:page <singular> <plural>` | Generate a complete page from the template |
+| `pnpm check:templates` | Generate a throwaway page, typecheck it, run its tests, remove it |
 | `pnpm knip` | Unused files, exports and dependencies |
-| `pnpm size` | Bundle size budget (`.size-limit.json`) |
-| `pnpm new:page <singular> <plural>` | Scaffold a page from `example-page` |
+| `pnpm size` | Total JS budget |
+| `pnpm size:first-load` | JS a browser really downloads for `/` (after `pnpm build`) |
 | `pnpm verify` | Everything above, in CI order |
 
 ## Project structure
@@ -81,9 +80,8 @@ src/
 ├── routes/                  # file-based routes; each page owns its code
 │   ├── __root.tsx
 │   └── _app/                # pathless layout: sidebar + header
-│       ├── index.tsx        # /
-│       └── example-page/    # /example-page — the reference page
-├── shared/                  # reusable, domain-free code only
+│       └── index.tsx        # /  (the only page in the base)
+├── shared/                  # reusable, domain-free building blocks
 │   ├── components/
 │   │   ├── ui/              # shadcn/ui primitives (generated, not linted)
 │   │   ├── data-table/      # DataTable, sort header, pagination, column toggle
@@ -96,17 +94,39 @@ src/
 │   └── testing/             # render helpers, Vitest setup
 ├── main.tsx
 └── vite-env.d.ts
+
+scripts/templates/
+├── page/                    # the page `pnpm new:page` copies (with its tests)
+└── page-e2e/                # its Playwright spec
 ```
 
-### A page owns its code
+`shared/` ships ready to use even before any page uses it, so Knip treats it as a public
+library (`knip.json`). The form and search-param libraries stay installed for the same
+reason: generated pages need them.
+
+## Adding a page
+
+```bash
+pnpm new:page user users     # → src/routes/_app/users/ and e2e/users.spec.ts, route /users
+```
+
+The generator copies `scripts/templates/page`, renames every file and identifier (multi-word
+names work: `user-profile user-profiles`), and prints the remaining steps: add the sidebar
+entry, set `VITE_API_BASE_URL`, and adjust the schemas to the real fields. The generated page
+calls `/<plural>` on your API and expects the common list shapes (see
+[API responses](#api-responses-validated-not-assumed)).
+
+CI runs `pnpm check:templates`, so the template can't silently break.
+
+### What a generated page owns
 
 ```text
-routes/_app/example-page/
+routes/_app/users/
 ├── index.tsx              # route: validates search, declares loaderDeps, preloads, composes
-├── $itemId/
-│   ├── route.tsx          # detail route: typed params, preloads the item
+├── $userId/
+│   ├── route.tsx          # detail route: typed params, preloads the record
 │   └── components/
-├── components/            # columns, table, filter, form, actions, page
+├── components/            # columns (sortable headers), table, filter, form, actions, page
 ├── services/              # transport only: one function per endpoint, parsed with Zod
 ├── queries/               # key factory, queryOptions, mutation hooks (+ invalidation)
 ├── schemas/               # entity, form and URL-search schemas
@@ -116,22 +136,12 @@ routes/_app/example-page/
 
 The route file owns URL validation, loader dependencies, preloading and composition. It does
 not own Axios details, business rules, form state, table implementation or feedback UI.
-
-Services do transport only. No React, no toasts, no navigation, no cache policy. Queries own
-keys and `queryOptions`. Mutations own cache invalidation. Components decide what the user
-sees on success or failure.
+Services do transport only, with no React, toasts, navigation or cache policy. Mutations own
+cache invalidation, and components own the toasts.
 
 `components`, `services`, `queries`, `schemas`, `tests` and `types.ts` are excluded from
-route generation (`tsr.config.json` and `vite.config.ts`), so only `index.tsx` and
-`route.tsx` files become routes.
-
-**Adding a page:** run `pnpm new:page user users`, add a sidebar entry in
-`shared/components/layout/app-sidebar.tsx`, then point the new services and schemas at the
-real endpoints. **Removing a page:** delete its folder and its sidebar entry. Nothing else
-references it.
-
-**Shared-folder rule:** code moves into `shared/` only once a second page needs it, and only
-if it carries no domain knowledge.
+route generation, so only `index.tsx` and `route.tsx` files become routes. **Removing a
+page** means deleting its folder, its e2e spec and its sidebar entry.
 
 ## State ownership
 
@@ -139,87 +149,71 @@ if it carries no domain knowledge.
 |---|---|
 | Server data | TanStack Query. Never copied into `useState` |
 | Filters, sorting, pagination | URL search params, validated by the route |
-| Success / failure notices | Toasts (`sonner`), raised by components, never by services |
 | Form values | React Hook Form |
+| Success / failure notices | Toasts (`sonner`), raised by components, never by services |
 | Simple local UI state | `useState` |
 | Complex local workflows | `useReducer` |
-| Theme | `ThemeProvider` |
-| Locale and direction | `LocaleProvider` |
+| Theme / locale and direction | `ThemeProvider` / `LocaleProvider` |
 
-### URL search state
-
-`example-page/schemas/item-search.schema.ts` defines the list's URL state:
+A generated page's list state lives in the URL:
 
 ```text
-/example-page?page=2&pageSize=25&status=active&search=amer&sort=createdAt&order=desc
+/users?page=2&pageSize=25&status=active&search=amer&sort=createdAt&order=desc
 ```
 
-Sorting is done from the column headers (`DataTableSortHeader`): clicking the sorted column
-flips its order, clicking another sorts it ascending. The page decides that
-(`nextSort` in `item-columns.tsx`) and writes it to the URL like any other filter.
-
-Every key has a default and a per-key fallback, so a malformed or stale URL still renders
-instead of erroring. Defaults are stripped from the URL (`stripSearchParams`) to keep links
-short. `loaderDeps` picks only the keys the query uses, so an unrelated URL param never
-triggers a refetch and never reaches the API. Because all of this lives in the URL, filters
-survive refresh, back/forward, bookmarks and shared links.
+Every key has a default and a per-key fallback, so a malformed URL still renders. Defaults
+are stripped from links, and unknown params never reach the API. Filters survive refresh,
+back/forward, bookmarks and shared links.
 
 ## API responses: validated, not assumed
 
-- Every service parses its response with the page's Zod schema. A renamed or missing field
-  fails at the boundary, not deep inside a component.
+- Every generated service parses its response with the page's Zod schema.
 - `shared/services/response-envelope.ts` normalizes common list shapes (`{ items, total, … }`,
   `{ data, meta }`, `{ results, count }`, a bare array) into one `PaginatedResponse<T>`.
 - `shared/services/error-normalizer.ts` turns any failure into
-  `{ message, status, code, fieldErrors }`. It reads the common error-body conventions
-  (`message` as a string or string array, `code`, `errors`/`fieldErrors`) and falls back to
-  a generic message for anything else. Raw exception text never reaches the UI.
+  `{ message, status, code, fieldErrors }`, reading the common error-body conventions and
+  never showing raw exception text.
 
-To add auth headers, tracing or retries, add Axios interceptors in `http-client.ts`. That is
-the only file that knows about transport.
+Add auth headers, tracing or retries with interceptors in `http-client.ts`, the only file
+that knows about transport.
 
 ## Locale and direction
 
 `app/providers/locale-provider.tsx` holds the current locale (`en`, `ar`, `ckb`, `ku`) and
 keeps `<html lang>` and `<html dir>` in sync (`ar` and `ckb` are right-to-left). It contains
-no translation resources. Layout uses logical properties (`ms-*`, `me-*`, `text-start`), so
-RTL works without per-component changes. Plug in a translation system on top of
-`useLocale().locale` when a project needs one.
+no translation resources. Layout uses logical properties, so RTL works without per-component
+changes.
 
 ## Testing
 
 | Layer | Where | Tool |
 |---|---|---|
-| Unit / integration | `tests/` inside the page or shared module they cover | Vitest + Testing Library |
+| Unit / integration | `tests/` beside the module they cover | Vitest + Testing Library |
 | Browser flows | `e2e/` | Playwright (Chromium + mobile Chromium) |
 
-`shared/testing/render.tsx` provides two helpers:
-
-- `renderWithProviders(ui)` renders a single component behind a throwaway router.
-- `renderApp(url)` renders the **real** generated route tree at a URL, so search
-  validation, loaders and the page run exactly as in the app.
-
-Tests stub the network at the `httpClient` boundary (Vitest) or at the browser network layer
-(`page.route` in Playwright). The app bundle itself contains no mocks.
+`renderWithProviders(ui)` renders one component behind a throwaway router. `renderApp(url)`
+renders the **real** route tree at a URL. Tests stub the network at the `httpClient` boundary
+(Vitest) or the browser network layer (Playwright). The bundle contains no mocks.
 
 ## Bundle budget
 
-`.size-limit.json` caps the initial load at 120 kB (brotli) and all JS at 350 kB. The core
-uses about 109 kB initially, which leaves room for the first real pages. `pnpm size` fails
-CI once a change crosses the budget.
+`pnpm size:first-load` opens `/` in Chromium and sums every JS file the browser downloads.
+The base is about 165 kB (brotli) against a 200 kB budget. `pnpm size` caps all JS at
+350 kB. (Counting only `index-*.js`, the old check, missed shared chunks that move around as
+pages are added.)
 
 ## CI
 
-`.github/workflows/dashboard-ci.yml` at the repository root runs only when `apps/dashboard/**`
-changes: typecheck, lint, Knip, tests, build, size budget, Playwright. It installs only
-this app's own lockfile.
+`.github/workflows/dashboard-ci.yml` runs only when `apps/dashboard/**` changes: typecheck,
+lint, Knip, tests, the template check, build, both size budgets, and Playwright. It installs
+only this app's own lockfile.
 
 ## Optional starters
 
 Not implemented in the core, on purpose. Add them per project:
 
 - **Authentication and sessions:** login routes under a pathless `_auth` layout, a session
-  query, a `beforeLoad` guard on `_app`, an auth interceptor in `http-client.ts`.
+  query, a `beforeLoad` guard on `_app`, and an auth interceptor in `http-client.ts`.
 - **Authorization:** route-level checks in `beforeLoad` plus a component guard, fed by
   whatever your API issues.
 - **Translations:** any i18n library, keyed off `useLocale().locale`.

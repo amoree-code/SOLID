@@ -11,8 +11,8 @@ RUN pnpm install --frozen-lockfile
 
 FROM deps AS build
 COPY . .
-# VITE_API_BASE_URL is baked into the static bundle at build time and is
-# required — the build fails without it:
+# VITE_API_BASE_URL is baked into the static bundle at build time (optional
+# until a page calls an API):
 #   docker build --build-arg VITE_API_BASE_URL=https://api.example.com -t dashboard .
 ARG VITE_API_BASE_URL
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL

@@ -1,22 +1,30 @@
-import type { INestApplication } from '@nestjs/common';
+import { Body, Controller, type INestApplication, Post } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import request from 'supertest';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { z } from 'zod';
 import { configureApp, createOpenApiDocument } from './app.setup.js';
+import { ApiZodBody, ApiZodResponse } from './common/openapi/zod-openapi.js';
+import { ZodValidationPipe } from './common/pipes/zod-validation.pipe.js';
 import { PrismaService } from './database/prisma.service.js';
 import { HealthController } from './health/health.controller.js';
-import { ExampleResourceController } from './modules/example-resource/example-resource.controller.js';
-import { ExampleResourceRepository } from './modules/example-resource/example-resource.repository.js';
-import { ExampleResourceService } from './modules/example-resource/example-resource.service.js';
 
 const RATE_LIMIT = 3;
 
-const emptyRepository = {
-  findMany: async () => ({ rows: [], total: 0 }),
-  findById: async () => null,
-};
+const noteSchema = z.object({ title: z.string().min(1), done: z.boolean() });
+
+/** A stand-in for a real module: exercises validation, docs and rate limiting. */
+@Controller('notes')
+class NotesController {
+  @Post()
+  @ApiZodBody(noteSchema)
+  @ApiZodResponse(201, noteSchema)
+  create(@Body(new ZodValidationPipe(noteSchema)) body: z.infer<typeof noteSchema>) {
+    return body;
+  }
+}
 
 describe('configureApp (real HTTP setup, no database)', () => {
   let app: INestApplication;
@@ -24,10 +32,8 @@ describe('configureApp (real HTTP setup, no database)', () => {
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [ThrottlerModule.forRoot([{ ttl: 60_000, limit: RATE_LIMIT }])],
-      controllers: [ExampleResourceController, HealthController],
+      controllers: [NotesController, HealthController],
       providers: [
-        ExampleResourceService,
-        { provide: ExampleResourceRepository, useValue: emptyRepository },
         { provide: PrismaService, useValue: { $queryRaw: async () => [] } },
         { provide: APP_GUARD, useClass: ThrottlerGuard },
       ],
@@ -62,13 +68,24 @@ describe('configureApp (real HTTP setup, no database)', () => {
     expect(other.headers['access-control-allow-origin']).toBeUndefined();
   });
 
-  it('rate-limits API routes with 429 in the normal error shape', async () => {
+  it('validates bodies into the normal error shape', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/notes')
+      .send({ title: '' })
+      .expect(400);
+
+    expect(response.body.code).toBe('VALIDATION_ERROR');
+    expect(Object.keys(response.body.errors)).toEqual(expect.arrayContaining(['title', 'done']));
+  });
+
+  it('rate-limits routes with 429 in the normal error shape', async () => {
     const server = app.getHttpServer();
     for (let attempt = 0; attempt < RATE_LIMIT; attempt += 1) {
-      await request(server).get('/example-resources').expect(200);
+      await request(server).post('/notes').send({ title: 'a', done: false }).expect(201);
     }
 
-    const limited = await request(server).get('/example-resources').expect(429);
+    const limited = await request(server).post('/notes').send({ title: 'a', done: false });
+    expect(limited.status).toBe(429);
     expect(limited.body).toMatchObject({ message: expect.any(String), code: null, errors: null });
   });
 
@@ -83,20 +100,14 @@ describe('configureApp (real HTTP setup, no database)', () => {
     await request(app.getHttpServer()).get('/docs').expect(200);
 
     const document = createOpenApiDocument(app);
-    const create = document.paths['/example-resources']?.post;
-    const body = create?.requestBody as {
-      content: Record<string, { schema: { properties: Record<string, unknown> } }>;
+    const body = document.paths['/notes']?.post?.requestBody as {
+      content: Record<
+        string,
+        { schema: { properties: Record<string, unknown>; required: string[] } }
+      >;
     };
-    expect(Object.keys(body.content['application/json']?.schema.properties ?? {})).toEqual([
-      'name',
-      'status',
-    ]);
-
-    const listParameters = (document.paths['/example-resources']?.get?.parameters ?? []).map(
-      (parameter) => ('name' in parameter ? parameter.name : null),
-    );
-    expect(listParameters).toEqual(
-      expect.arrayContaining(['page', 'pageSize', 'search', 'status', 'sort', 'order']),
-    );
+    const schema = body.content['application/json']?.schema;
+    expect(Object.keys(schema?.properties ?? {})).toEqual(['title', 'done']);
+    expect(schema?.required).toEqual(['title', 'done']);
   });
 });

@@ -17,10 +17,12 @@
     "test:coverage": "tsr generate && vitest run --coverage",
     "knip": "knip",
     "size": "size-limit",
+    "size:first-load": "node scripts/check-first-load.mjs",
     "e2e": "playwright test",
     "e2e:install": "playwright install --with-deps chromium",
     "new:page": "node scripts/new-page.mjs",
-    "verify": "pnpm typecheck && pnpm lint:ci && pnpm test && pnpm build && pnpm knip && pnpm size && pnpm e2e"
+    "check:templates": "node scripts/check-templates.mjs",
+    "verify": "pnpm typecheck && pnpm lint:ci && pnpm test && pnpm check:templates && pnpm build && pnpm knip && pnpm size && pnpm size:first-load && pnpm e2e"
   },
   "dependencies": {
     "@fontsource/geist-mono": "^5.3.0",

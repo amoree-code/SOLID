@@ -9,5 +9,7 @@ export default defineConfig({
     globals: true,
     root: './',
     include: ['**/*.spec.ts'],
+    // Template sources are copied by `pnpm new:resource`, never run in place.
+    exclude: ['**/node_modules/**', 'dist/**', 'scripts/templates/**'],
   },
 });

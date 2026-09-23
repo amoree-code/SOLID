@@ -1,5 +1,6 @@
 import { isAxiosError } from 'axios';
 import { z } from 'zod';
+import { ApiConfigError } from './http-client';
 
 export type NormalizedError = {
   message: string;
@@ -24,6 +25,10 @@ const errorBodySchema = z.object({
 });
 
 export function normalizeError(error: unknown): NormalizedError {
+  if (error instanceof ApiConfigError) {
+    return { message: error.message, status: null, code: 'API_CONFIG', fieldErrors: null };
+  }
+
   if (!isAxiosError(error)) {
     return { message: FALLBACK_MESSAGE, status: null, code: null, fieldErrors: null };
   }

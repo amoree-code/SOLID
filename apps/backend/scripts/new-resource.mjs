@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Scaffolds a new NestJS resource from the `example-resource` reference module:
- * copies src/modules/example-resource/ -> src/modules/<singular>/, renames every
+ * Scaffolds a new NestJS resource from the reference template (the app itself
+ * ships empty): copies scripts/templates/resource/ -> src/modules/<singular>/, renames every
  * file and identifier (classes, the @Controller route, the Prisma accessor and
  * table name), and appends a matching model + enum to prisma/schema.prisma.
  * The module's HTTP spec is copied too, so the new resource starts tested.
@@ -77,7 +77,8 @@ const humanSingular = singular.replaceAll('-', ' ');
 const snakePlural = plural.replaceAll('-', '_');
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const templateDir = path.join(repoRoot, 'src/modules/example-resource');
+const templateDir = path.join(repoRoot, 'scripts/templates/resource');
+const modelTemplatePath = path.join(templateDir, 'model.prisma');
 const targetDir = path.join(repoRoot, 'src/modules', singular);
 const schemaPath = path.join(repoRoot, 'prisma/schema.prisma');
 
@@ -117,6 +118,9 @@ function copyRecursive(srcPath, destPath) {
   if (stat.isDirectory()) {
     fs.mkdirSync(destPath, { recursive: true });
     for (const entry of fs.readdirSync(srcPath)) {
+      if (path.join(srcPath, entry) === modelTemplatePath) {
+        continue; // appended to schema.prisma below, not copied as a file
+      }
       copyRecursive(path.join(srcPath, entry), path.join(destPath, transformName(entry)));
     }
     return;
@@ -128,21 +132,12 @@ function copyRecursive(srcPath, destPath) {
 
 copyRecursive(templateDir, targetDir);
 
-// ---- Prisma: append a matching model + enum, extracted from the reference
-// schema's own `model ExampleResource { ... }` / `enum ExampleResourceStatus { ... }` blocks ----
-const schema = fs.readFileSync(schemaPath, 'utf8');
-const modelMatch = schema.match(/model ExampleResource \{[\s\S]*?\n\}\n/);
-const enumMatch = schema.match(/enum ExampleResourceStatus \{[\s\S]*?\n\}\n/);
-
-if (!modelMatch || !enumMatch) {
-  fail(
-    'Could not find "model ExampleResource" / "enum ExampleResourceStatus" in prisma/schema.prisma to use as a template — has the reference schema been renamed or removed?',
-  );
-}
-
-const newModel = transformContent(modelMatch[0]);
-const newEnum = transformContent(enumMatch[0]);
-fs.appendFileSync(schemaPath, `\n${newModel}\n${newEnum}`);
+// ---- Prisma: append the template's model + enum, renamed ----
+const model = transformContent(fs.readFileSync(modelTemplatePath, 'utf8'))
+  .split('\n')
+  .filter((line) => !line.startsWith('// Appended to prisma/schema.prisma'))
+  .join('\n');
+fs.appendFileSync(schemaPath, `\n${model}`);
 
 // Column alignment in the appended block was copied from ExampleResource's — almost
 // never right once the names change length. `prisma format` re-aligns the

@@ -2,9 +2,9 @@ import type { INestApplication } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '../src/app.module.js';
-import { HttpExceptionFilter } from '../src/common/filters/http-exception.filter.js';
+import { configureApp } from '../src/app.setup.js';
 
-// Runs against the real database in DATABASE_URL (migrated first — see CI).
+// Runs the full AppModule against the real database in DATABASE_URL (migrated first — see CI).
 describe('App (e2e, real database)', () => {
   let app: INestApplication;
 
@@ -14,7 +14,7 @@ describe('App (e2e, real database)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.useGlobalFilters(new HttpExceptionFilter());
+    configureApp(app, { corsOrigins: [] });
     await app.init();
   });
 
@@ -33,40 +33,12 @@ describe('App (e2e, real database)', () => {
       .expect({ status: 'ok', database: 'up' });
   });
 
-  it('creates, reads, updates, lists and deletes an example resource', async () => {
-    const server = app.getHttpServer();
-    const name = `e2e ${Date.now()}`;
+  it('serves the API docs', () => {
+    return request(app.getHttpServer()).get('/docs-json').expect(200);
+  });
 
-    const created = await request(server)
-      .post('/example-resources')
-      .send({ name, status: 'active' })
-      .expect(201);
-    const { id } = created.body as { id: string };
-
-    await request(server)
-      .get(`/example-resources/${id}`)
-      .expect(200)
-      .expect((response) => {
-        expect(response.body).toMatchObject({ id, name, status: 'active' });
-      });
-
-    await request(server)
-      .patch(`/example-resources/${id}`)
-      .send({ status: 'inactive' })
-      .expect(200)
-      .expect((response) => {
-        expect(response.body).toMatchObject({ id, status: 'inactive' });
-      });
-
-    await request(server)
-      .get('/example-resources')
-      .query({ search: name, status: 'inactive' })
-      .expect(200)
-      .expect((response) => {
-        expect(response.body).toMatchObject({ total: 1, items: [{ id }] });
-      });
-
-    await request(server).delete(`/example-resources/${id}`).expect(204);
-    await request(server).get(`/example-resources/${id}`).expect(404);
+  it('answers unknown routes with 404 in the normal error shape', async () => {
+    const response = await request(app.getHttpServer()).get('/does-not-exist').expect(404);
+    expect(response.body).toMatchObject({ message: expect.any(String), code: null, errors: null });
   });
 });

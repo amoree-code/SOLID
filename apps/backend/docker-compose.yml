@@ -42,7 +42,6 @@ services:
         condition: service_completed_successfully
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/solid_backend?schema=public
-      CORS_ORIGIN: http://localhost:5173
     ports:
       - '${API_PORT:-3000}:3000'
     # Healthy only once Nest is actually serving (busybox wget ships with node:alpine).

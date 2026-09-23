@@ -70,6 +70,8 @@ jobs:
       - run: pnpm db:generate
       - run: pnpm exec prisma migrate deploy
       - run: pnpm test
+      # The example resource lives in scripts/templates; prove `pnpm new:resource` still works.
+      - run: pnpm check:templates
       - run: pnpm test:e2e
 
   build:

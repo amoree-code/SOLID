@@ -3,7 +3,7 @@
  * One command from a fresh clone to a running database:
  *   1. create .env from .env.example (only if .env does not exist yet)
  *   2. start the local Postgres from docker-compose.yml and wait until it is healthy
- *   3. generate the Prisma client, apply migrations, seed example rows
+ *   3. generate the Prisma client and apply any migrations
  *
  * Usage: pnpm quickstart   (then: pnpm dev)
  *
@@ -59,8 +59,5 @@ if (!skipDocker) {
 step('Database schema');
 run('pnpm', ['exec', 'prisma', 'generate']);
 run('pnpm', ['exec', 'prisma', 'migrate', 'deploy']);
-
-step('Example data');
-run('pnpm', ['db:seed']);
 
 console.log('\n✔ Ready. Start the API with: pnpm dev');
