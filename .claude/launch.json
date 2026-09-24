@@ -2,10 +2,22 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "backend",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "cd apps/backend && CORS_ORIGIN=http://localhost:5174 pnpm dev"],
+      "port": 3000
+    },
+    {
       "name": "dashboard",
       "runtimeExecutable": "sh",
-      "runtimeArgs": ["-c", "cd apps/dashboard && pnpm dev"],
-      "port": 5173
+      "runtimeArgs": ["-c", "cd apps/dashboard && pnpm dev --port 5174 --strictPort"],
+      "port": 5174
+    },
+    {
+      "name": "portfolio",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "cd apps/portfolio && pnpm dev --port 3002"],
+      "port": 3002
     }
   ]
 }
