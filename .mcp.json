@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "ocean-uiux": {
+      "type": "http",
+      "url": "https://ocean-uiux-mcp.vercel.app/api/mcp"
+    }
+  }
+}
