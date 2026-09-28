@@ -110,4 +110,18 @@ describe('configureApp (real HTTP setup, no database)', () => {
     expect(Object.keys(schema?.properties ?? {})).toEqual(['title', 'done']);
     expect(schema?.required).toEqual(['title', 'done']);
   });
+
+  it('can disable public Swagger docs', async () => {
+    const moduleRef = await Test.createTestingModule({
+      imports: [ThrottlerModule.forRoot([{ ttl: 60_000, limit: RATE_LIMIT }])],
+      controllers: [NotesController],
+      providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
+    }).compile();
+    const docsDisabledApp = moduleRef.createNestApplication();
+    configureApp(docsDisabledApp, { corsOrigins: [], swaggerEnabled: false });
+    await docsDisabledApp.init();
+
+    await request(docsDisabledApp.getHttpServer()).get('/docs').expect(404);
+    await docsDisabledApp.close();
+  });
 });

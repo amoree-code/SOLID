@@ -31,8 +31,10 @@ pnpm dev          # http://localhost:3000, docs at http://localhost:3000/docs
 ```
 
 `pnpm quickstart` is safe to re-run, and it never overwrites an existing `.env`. If port 5432
-is taken, set `POSTGRES_PORT` in `.env` and use the same port in `DATABASE_URL`. To use your
-own Postgres instead of Docker, set `DATABASE_URL` and run `pnpm quickstart --no-docker`.
+is taken, set `POSTGRES_PORT` in `.env` and update `DATABASE_URL`. To use Supabase with the
+simple one-URL setup, set `DATABASE_URL` to the direct Supabase URL and run
+`pnpm quickstart --no-docker`. For pooled runtime traffic, also set `DIRECT_URL` to the direct
+Supabase URL.
 
 Everything in containers (database, migrations, then the API), with nothing installed locally:
 
@@ -42,10 +44,14 @@ docker compose --profile full up -d --wait   # API on http://localhost:3000
 
 | Variable | Required | Meaning |
 |---|---|---|
-| `DATABASE_URL` | yes | PostgreSQL connection string |
+| `DATABASE_URL` | yes | Runtime PostgreSQL URL; Supabase transaction pooler uses port `6543` and `pgbouncer=true` |
+| `DIRECT_URL` | no | Optional direct PostgreSQL URL for Prisma CLI when `DATABASE_URL` uses a pooler |
+| `NODE_ENV` | no | `development`, `test`, or `production` |
 | `PORT` | no | Defaults to `3000` |
 | `CORS_ORIGIN` | no | Comma-separated allowed browser origins. Empty (default) disables CORS |
 | `RATE_LIMIT_MAX` / `RATE_LIMIT_WINDOW_MS` | no | Requests allowed per client per window. Defaults `100` / `60000` |
+| `SWAGGER_ENABLED` | no | Exposes `/docs` and `/docs-json`; set `false` unless intentionally public in production |
+| `TRUST_PROXY` | no | Trusted reverse-proxy hops for real client IP throttling. Defaults `0` |
 | `POSTGRES_PORT` / `API_PORT` | no | Host ports for Docker Postgres / the API container. Defaults `5432` / `3000` |
 
 ## Commands
@@ -67,6 +73,28 @@ docker compose --profile full up -d --wait   # API on http://localhost:3000
 | `pnpm verify` | typecheck, lint, test, template check, build |
 | `pnpm changeset` | Describe a release-worthy change |
 | `pnpm changeset:status` | Preview pending version changes |
+
+## Supabase connection setup
+
+Simple setup — one direct Supabase URL:
+
+```dotenv
+DATABASE_URL="postgresql://postgres:<password>@db.<project-ref>.supabase.co:5432/postgres"
+DIRECT_URL=
+```
+
+Recommended production setup — pooled runtime URL plus direct CLI URL:
+
+```dotenv
+# Runtime API traffic: Supavisor transaction pooler
+DATABASE_URL="postgresql://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres?pgbouncer=true"
+
+# Prisma migrations, db pull and Studio: direct database connection
+DIRECT_URL="postgresql://postgres:<password>@db.<project-ref>.supabase.co:5432/postgres"
+```
+
+The API reads `DATABASE_URL`. Prisma CLI uses `DIRECT_URL` when it is set; otherwise it falls
+back to `DATABASE_URL`. Keep values in deployment secrets, never in Git.
 
 ## Structure
 
@@ -142,7 +170,7 @@ returns `503` when the database does not answer (readiness). Neither is rate-lim
 **Security:** `helmet` sets security headers on every response. Every route is rate-limited
 per client (`429` in the normal error shape); opt a controller out with `@SkipThrottle()`.
 
-**Docs:** `/docs` (Swagger UI) and `/docs-json` (OpenAPI). Use `ApiZodBody`, `ApiZodQuery` and
+**Docs:** `/docs` (Swagger UI) and `/docs-json` (OpenAPI) when `SWAGGER_ENABLED=true`. Use `ApiZodBody`, `ApiZodQuery` and
 `ApiZodResponse` from `common/openapi/` so the docs come from the same Zod schemas that
 validate requests and can't drift from them.
 

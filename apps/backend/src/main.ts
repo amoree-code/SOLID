@@ -8,7 +8,11 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const config = app.get<ConfigService<Env, true>>(ConfigService);
 
-  configureApp(app, { corsOrigins: config.get('CORS_ORIGIN', { infer: true }) });
+  configureApp(app, {
+    corsOrigins: config.get('CORS_ORIGIN', { infer: true }),
+    swaggerEnabled: config.get('SWAGGER_ENABLED', { infer: true }),
+    trustProxy: config.get('TRUST_PROXY', { infer: true }),
+  });
 
   const port = config.get('PORT', { infer: true });
   await app.listen(port);

@@ -9,6 +9,8 @@ export default defineConfig({
     path: 'prisma/migrations',
   },
   datasource: {
-    url: process.env.DATABASE_URL,
+    // Prisma CLI uses the direct URL for migrations and introspection.
+    // Runtime queries use DATABASE_URL in PrismaService.
+    url: process.env.DIRECT_URL || process.env.DATABASE_URL,
   },
 });
