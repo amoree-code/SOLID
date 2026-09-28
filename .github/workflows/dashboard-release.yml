@@ -1,0 +1,44 @@
+name: Dashboard Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/dashboard/.changeset/**"
+      - "apps/dashboard/package.json"
+      - "apps/dashboard/pnpm-lock.yaml"
+      - ".github/workflows/dashboard-release.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: dashboard-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Version dashboard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: apps/dashboard/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: apps/dashboard/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+        working-directory: apps/dashboard
+      - uses: changesets/action@v1
+        with:
+          cwd: apps/dashboard
+          version-script: pnpm changeset:version
+          commit-message: "chore(dashboard): version packages"
+          title: "chore(dashboard): version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

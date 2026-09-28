@@ -1,0 +1,44 @@
+name: Backend Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/backend/.changeset/**"
+      - "apps/backend/package.json"
+      - "apps/backend/pnpm-lock.yaml"
+      - ".github/workflows/backend-release.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: backend-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Version backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: apps/backend/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: apps/backend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+        working-directory: apps/backend
+      - uses: changesets/action@v1
+        with:
+          cwd: apps/backend
+          version-script: pnpm changeset:version
+          commit-message: "chore(backend): version packages"
+          title: "chore(backend): version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
