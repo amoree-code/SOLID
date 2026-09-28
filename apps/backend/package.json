@@ -32,6 +32,9 @@
     "db:studio": "prisma studio",
     "new:resource": "node scripts/new-resource.mjs",
     "check:templates": "node scripts/check-templates.mjs",
+    "changeset": "changeset",
+    "changeset:status": "changeset status",
+    "changeset:version": "changeset version",
     "verify": "pnpm typecheck && pnpm lint:ci && pnpm test && pnpm check:templates && pnpm build"
   },
   "dependencies": {
@@ -52,6 +55,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",
+    "@changesets/cli": "^3.0.3",
     "@nestjs/cli": "^12.0.0",
     "@nestjs/schematics": "^12.0.0",
     "@nestjs/testing": "^12.0.1",

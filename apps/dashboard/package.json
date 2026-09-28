@@ -22,6 +22,9 @@
     "e2e:install": "playwright install --with-deps chromium",
     "new:page": "node scripts/new-page.mjs",
     "check:templates": "node scripts/check-templates.mjs",
+    "changeset": "changeset",
+    "changeset:status": "changeset status",
+    "changeset:version": "changeset version",
     "verify": "pnpm typecheck && pnpm lint:ci && pnpm test && pnpm check:templates && pnpm build && pnpm knip && pnpm size && pnpm size:first-load && pnpm e2e"
   },
   "dependencies": {
@@ -46,6 +49,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",
+    "@changesets/cli": "^3.0.3",
     "@playwright/test": "^1.63.0",
     "@size-limit/preset-app": "^14.0.0",
     "@tailwindcss/vite": "^4.3.3",

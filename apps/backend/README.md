@@ -65,6 +65,8 @@ docker compose --profile full up -d --wait   # API on http://localhost:3000
 | `pnpm new:resource <singular> <plural>` | Generate a complete resource from the template |
 | `pnpm check:templates` | Generate a throwaway resource, typecheck it, run its tests, remove it |
 | `pnpm verify` | typecheck, lint, test, template check, build |
+| `pnpm changeset` | Describe a release-worthy change |
+| `pnpm changeset:status` | Preview pending version changes |
 
 ## Structure
 
@@ -116,6 +118,12 @@ one place that maps database rows to the API shape. There is no interface or fac
 add one only when a second implementation exists.
 
 CI runs `pnpm check:templates`, so the template can't silently break.
+
+## Releases
+
+Create a changeset for each user-facing or operational change with `pnpm changeset`.
+Changesets are versioned by the backend release workflow, which opens a pull request on
+`main` and keeps changelog history without publishing this private template to a registry.
 
 ## API conventions
 

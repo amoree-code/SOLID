@@ -67,6 +67,8 @@ docker build --build-arg VITE_API_BASE_URL=https://api.example.com -t dashboard 
 | `pnpm size` | Total JS budget |
 | `pnpm size:first-load` | JS a browser really downloads for `/` (after `pnpm build`) |
 | `pnpm verify` | Everything above, in CI order |
+| `pnpm changeset` | Describe a release-worthy change |
+| `pnpm changeset:status` | Preview pending version changes |
 
 ## Project structure
 
@@ -117,6 +119,12 @@ calls `/<plural>` on your API and expects the common list shapes (see
 [API responses](#api-responses-validated-not-assumed)).
 
 CI runs `pnpm check:templates`, so the template can't silently break.
+
+## Releases
+
+Create a changeset for each user-facing or operational change with `pnpm changeset`.
+Changesets are versioned by the dashboard release workflow, which opens a pull request on
+`main` and keeps changelog history without publishing this private template to a registry.
 
 ### What a generated page owns
 
