@@ -111,7 +111,16 @@ src/
 ├── database/                  # PrismaModule (global), PrismaService
 ├── health/                    # GET /health (liveness), GET /health/ready (database)
 ├── generated/prisma/          # Prisma client output (gitignored)
-└── modules/                   # created by `pnpm new:resource`
+└── modules/                   # one self-contained module per business capability
+    └── <feature>/
+        ├── <feature>.module.ts
+        ├── <feature>.controller.ts
+        ├── <feature>.service.ts
+        ├── <feature>.repository.ts
+        ├── dto/              # transport types
+        ├── schemas/          # Zod runtime validation
+        ├── types/            # shared feature types
+        └── tests/             # layer-focused tests
 
 prisma/
 └── schema.prisma              # datasource + generator, no models yet
@@ -139,7 +148,9 @@ pnpm db:generate                       # client with the new model
 pnpm db:migrate --name add_products    # creates and applies the migration
 ```
 
-The generated resource follows the conventions below: list endpoints return
+The generated resource follows this minimal layout: transport types go in `dto/`, Zod
+validation in `schemas/`, shared feature types in `types/`, business logic in the service,
+and Prisma access in the repository. Do not add extra architecture folders. List endpoints return
 `{ items, total, page, pageSize }` and accept `?page&pageSize&search&status&sort&order`, and
 a malformed query value falls back to its default instead of failing. Its repository is the
 one place that maps database rows to the API shape. There is no interface or factory layer;
