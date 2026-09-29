@@ -12,7 +12,7 @@ test.describe('empty base', () => {
     await page.goto('/');
 
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-    await expect(page.getByText('pnpm new:page user users')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'View analytics' })).toBeVisible();
     if (isMobile) {
       // On small screens the sidebar is an off-canvas sheet.
       await page.getByRole('button', { name: 'Toggle Sidebar' }).click();

@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { lazy, Suspense, useState } from 'react';
+import { appConfig } from '@/app/config/app-config';
 import dashboardData from '@/app/dashboard/data.json';
 import { SectionCards } from '@/shared/components/blocks/dashboard-01/section-cards';
 import { Button } from '@/shared/components/ui/button';
@@ -25,6 +26,7 @@ function HomePage() {
   return (
     <div className="@container/main flex flex-1 flex-col gap-2">
       <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+        <h1 className="px-4 text-2xl font-semibold lg:px-6">{appConfig.name}</h1>
         <SectionCards />
         <div className="px-4 lg:px-6">
           <Button variant="outline" onClick={() => setShowAnalytics((visible) => !visible)}>

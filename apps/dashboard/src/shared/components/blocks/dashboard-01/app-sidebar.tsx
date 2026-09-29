@@ -38,8 +38,8 @@ const data = {
   },
   navMain: [
     {
-      title: 'Dashboard',
-      url: '#',
+      title: 'Home',
+      url: '/',
       icon: <LayoutDashboardIcon />,
     },
     {
