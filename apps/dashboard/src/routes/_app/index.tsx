@@ -1,13 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { appConfig } from '@/app/config/app-config';
-import { PageHeader } from '@/shared/components/layout/page-header';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/shared/components/ui/card';
+import dashboardData from '@/app/dashboard/data.json';
+import { ChartAreaInteractive } from '@/shared/components/blocks/dashboard-01/chart-area-interactive';
+import { DataTable } from '@/shared/components/blocks/dashboard-01/data-table';
+import { SectionCards } from '@/shared/components/blocks/dashboard-01/section-cards';
 
 export const Route = createFileRoute('/_app/')({
   component: HomePage,
@@ -15,22 +10,14 @@ export const Route = createFileRoute('/_app/')({
 
 function HomePage() {
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader title={appConfig.name} description="An empty base — add your first page." />
-      <Card className="max-w-xl">
-        <CardHeader>
-          <CardTitle>Add a page</CardTitle>
-          <CardDescription>
-            Generates a complete list + detail page with URL-backed filters, sorting, paging, forms
-            and its own tests.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <pre className="overflow-x-auto rounded-md bg-muted px-3 py-2 text-sm" dir="ltr">
-            <code>pnpm new:page user users</code>
-          </pre>
-        </CardContent>
-      </Card>
+    <div className="@container/main flex flex-1 flex-col gap-2">
+      <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+        <SectionCards />
+        <div className="px-4 lg:px-6">
+          <ChartAreaInteractive />
+        </div>
+        <DataTable data={dashboardData} />
+      </div>
     </div>
   );
 }

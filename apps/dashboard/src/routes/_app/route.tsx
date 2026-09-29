@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 import type { CSSProperties } from 'react';
-import { AppSidebar } from '@/shared/components/layout/app-sidebar';
-import { SiteHeader } from '@/shared/components/layout/site-header';
+import { AppSidebar } from '@/shared/components/blocks/dashboard-01/app-sidebar';
+import { SiteHeader } from '@/shared/components/blocks/dashboard-01/site-header';
 import { SidebarInset, SidebarProvider } from '@/shared/components/ui/sidebar';
 
 export const Route = createFileRoute('/_app')({

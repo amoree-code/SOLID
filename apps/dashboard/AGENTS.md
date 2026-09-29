@@ -25,6 +25,51 @@ These rules apply only to this app.
 - Preserve existing TypeScript, validation, state ownership, RTL, testing, and folder
   conventions.
 
+## Default UI and theme
+
+Run both commands from the dashboard app root:
+
+```text
+apps/dashboard/
+```
+
+Use the Ocean dashboard starter as the default visual baseline for new dashboard pages:
+
+```bash
+pnpm dlx shadcn@latest add @ocean/dashboard-01
+```
+
+The `@ocean` namespace is configured in `components.json` and resolves to the Ocean
+registry at `https://ocean-uiux-mcp.vercel.app/r/{name}.json`. Keep that registry entry
+when adding other shadcn registries.
+
+Use the supplied tweakcn theme as the default token source:
+
+```bash
+pnpm dlx shadcn@latest add https://tweakcn.com/r/themes/cmmhxjr67000a04l47rqs4svm
+```
+
+Rules:
+
+- Generated reusable UI must go in `src/shared/components/ui/`; generated layout pieces go in
+  `src/shared/components/layout/`.
+- The theme command must update the CSS path configured in `components.json`, currently
+  `src/app/styles/globals.css`. Keep `tokens.css` for project-specific tokens only; do not
+  scatter color literals through feature components.
+- Do not install these into the repository root or another app. Each app remains independent.
+- Treat `components.json` as the destination contract: preserve its `ui` alias and CSS path.
+- Use the configured `@ocean/*` namespace for Ocean registry items; do not copy components
+  manually from the gallery or install them into `src/routes`.
+- Preserve the theme's CSS variables, dark-mode mapping, radius, shadows, and chart tokens
+  unless a product requirement explicitly changes them.
+- Preserve `components.json` aliases and `rtl: true`. New UI must work in both LTR and RTL
+  using logical CSS properties; do not create direction-specific copies of components.
+- Do not paste an entire dashboard block into a route. Extract reusable UI, keep route
+  composition thin, and keep feature logic in the page's services, queries, schemas, and
+  types.
+- If the Ocean starter or theme command is unavailable, stop and report the failure. Do not
+  silently replace it with an unrelated component library or theme.
+
 ## Folder structure
 
 ```text

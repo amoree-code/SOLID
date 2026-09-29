@@ -10,10 +10,13 @@
     "cssVariables": true
   },
   "aliases": {
-    "components": "@/shared/components",
-    "ui": "@/shared/components/ui",
-    "utils": "@/shared/utils/cn",
-    "lib": "@/shared"
+    "components": "src/shared/components",
+    "ui": "src/shared/components/ui",
+    "utils": "src/shared/utils/cn",
+    "lib": "src/shared"
+  },
+  "registries": {
+    "@ocean": "https://ocean-uiux-mcp.vercel.app/r/{name}.json"
   },
   "rtl": true
 }
