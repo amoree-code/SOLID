@@ -33,6 +33,11 @@ export default defineConfig(({ mode }) => ({
   test: {
     globals: true,
     environment: 'jsdom',
+    environmentOptions: {
+      jsdom: {
+        url: 'http://localhost/',
+      },
+    },
     setupFiles: ['./src/shared/testing/setup.ts'],
     css: true,
     // Unit/integration tests live next to the code they cover (a page's own
